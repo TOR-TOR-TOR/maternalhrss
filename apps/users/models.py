@@ -90,9 +90,9 @@ class Facility(models.Model):
     def get_level_number(self):
         """Returns just the level number (1-6)"""
         return self.facility_level.split('_')[1]
-```
 
----
+
+
 
 class CustomUser(AbstractUser):
     """
