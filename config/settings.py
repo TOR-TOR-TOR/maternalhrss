@@ -37,6 +37,8 @@ INSTALLED_APPS = [
 
 #my apps
     'apps.users',
+    'apps.mothers',
+
 ]
 
 # Custom user model
