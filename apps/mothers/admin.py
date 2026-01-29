@@ -259,6 +259,8 @@ class PregnancyAdmin(admin.ModelAdmin):
     
     def edd_display(self, obj):
         """Display EDD with auto-calculated indicator"""
+        if not obj.edd:
+            return '-'
         return format_html(
             '{} <span style="color: blue; font-size: 0.9em;">(auto-calculated)</span>',
             obj.edd.strftime('%d %b %Y')
