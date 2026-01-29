@@ -314,7 +314,7 @@ class Pregnancy(models.Model):
     @property
     def weeks_remaining(self):
         """Calculate weeks until EDD"""
-        if self.status != 'ACTIVE':
+        if self.status != 'ACTIVE' or not self.edd:
             return 0
         today = date.today()
         days_remaining = (self.edd - today).days
@@ -323,7 +323,7 @@ class Pregnancy(models.Model):
     @property
     def days_remaining(self):
         """Calculate days until EDD"""
-        if self.status != 'ACTIVE':
+        if self.status != 'ACTIVE' or not self.edd:
             return 0
         today = date.today()
         return max(0, (self.edd - today).days)
@@ -331,7 +331,9 @@ class Pregnancy(models.Model):
     @property
     def is_overdue(self):
         """Check if pregnancy is past EDD"""
-        return date.today() > self.edd and self.status == 'ACTIVE'
+        if not self.edd or self.status != 'ACTIVE':
+            return False
+        return date.today() > self.edd
     
     @property
     def trimester(self):
