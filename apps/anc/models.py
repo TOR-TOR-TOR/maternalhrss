@@ -181,7 +181,15 @@ class ANCVisit(models.Model):
     @property
     def is_overdue(self):
         """Check if visit is overdue"""
-        return not self.attended and not self.missed and self.scheduled_date < date.today()
+        #return not self.attended and not self.missed and self.scheduled_date < date.today()
+        #correction
+        return (
+                self.scheduled_date
+                and not self.attended
+                and not self.missed
+                and self.scheduled_date < date.today()
+                )
+
     
     @property
     def days_until_visit(self):
