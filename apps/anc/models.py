@@ -164,6 +164,9 @@ class ANCVisit(models.Model):
     @property
     def status(self):
         """Get visit status as string"""
+        if not self.scheduled_date:
+            return "Not Scheduled"
+        
         if self.attended:
             return "Attended"
         elif self.missed:
@@ -178,19 +181,21 @@ class ANCVisit(models.Model):
     @property
     def is_overdue(self):
         """Check if visit is overdue"""
+        if not self.scheduled_date:
+            return False
         return not self.attended and not self.missed and self.scheduled_date < date.today()
     
     @property
     def days_until_visit(self):
         """Calculate days until scheduled visit"""
-        if self.attended or self.missed:
+        if self.attended or self.missed or not self.scheduled_date:
             return 0
         return (self.scheduled_date - date.today()).days
     
     @property
     def is_due_soon(self):
         """Check if visit is due within 3 days (for SMS reminders)"""
-        if self.attended or self.missed:
+        if self.attended or self.missed or not self.scheduled_date:
             return False
         days = self.days_until_visit
         return 0 <= days <= 3

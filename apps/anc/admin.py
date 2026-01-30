@@ -160,6 +160,9 @@ class ANCVisitAdmin(admin.ModelAdmin):
     
     def scheduled_date_display(self, obj):
         """Display scheduled date with color coding"""
+        if not obj.scheduled_date:
+            return '-'
+        
         today = date.today()
         
         if obj.attended:
