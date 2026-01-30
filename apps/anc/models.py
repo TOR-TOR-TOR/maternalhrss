@@ -168,8 +168,11 @@ class ANCVisit(models.Model):
             return "Attended"
         elif self.missed:
             return "Missed"
-        elif self.scheduled_date < date.today():
-            return "Overdue"
+        #elif self.scheduled_date < date.today():
+        #   return "Overdue"
+        #immediate below is correction for above
+        elif self.scheduled_date and self.scheduled_date < date.today():
+
         elif self.scheduled_date == date.today():
             return "Due Today"
         else:
