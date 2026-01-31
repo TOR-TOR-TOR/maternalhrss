@@ -11,7 +11,51 @@ class ANCVisitAdmin(admin.ModelAdmin):
     """
     Admin interface for managing ANC visits
     Shows attendance status, clinical data, and danger signs
+    
+    NOTE: Manual creation is disabled - visits are auto-generated when pregnancy is created
     """
+    
+    # Controlled manual creation - only for exceptional cases
+    def has_add_permission(self, request):
+        """
+        Allow manual ANC visit addition only for:
+        - Facility Managers (handle transfers, complications, extra visits)
+        - MOH Administrators (data oversight and corrections)
+        - Superusers (system administration)
+        
+        Regular nurses use auto-generation only (prevents errors)
+        
+        Use cases for manual addition:
+        - Mother transferred from another facility
+        - High-risk pregnancy requiring extra visits
+        - Post-EDD monitoring (beyond week 40)
+        - Retrospective data entry
+        """
+        # Superuser always allowed
+        if request.user.is_superuser:
+            return True
+        
+        # Managers and MOH can add for exceptional cases
+        return request.user.role in ['MANAGER', 'MOH']
+    
+    def add_view(self, request, form_url='', extra_context=None):
+        """Show guidance when manually adding visits"""
+        from django.contrib import messages
+        
+        messages.info(
+            request,
+            '💡 TIP: Manual addition is for exceptional cases only. '
+            'For normal pregnancies, visits auto-generate when pregnancy is created. '
+            'Use manual addition for: transfers, complications, extra visits, or post-EDD monitoring.'
+        )
+        
+        return super().add_view(request, form_url, extra_context)
+    
+    def changelist_view(self, request, extra_context=None):
+        """Add informational message at the top of the list"""
+        extra_context = extra_context or {}
+        extra_context['title'] = 'ANC Contacts (Auto-generated from Pregnancies)'
+        return super().changelist_view(request, extra_context=extra_context)
     
     list_display = [
         'visit_info',
