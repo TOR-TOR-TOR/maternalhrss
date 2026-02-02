@@ -342,9 +342,9 @@ class Baby(models.Model):
     
     @property
     def birth_weight_kg(self):
+        """Convert birth weight to kilograms"""
         if self.birth_weight_grams is None:
             return None
-        """Convert birth weight to kilograms"""
         return self.birth_weight_grams / 1000
     
     @property
@@ -363,7 +363,7 @@ class Baby(models.Model):
         if self.birth_weight_grams is None:
             return None
         elif self.birth_weight_grams < 1500:
-            return "very Low Birth Weight"
+            return "Very Low Birth Weight"
         elif self.birth_weight_grams < 2500:
             return "Low Birth Weight"
         elif self.birth_weight_grams <= 4000:

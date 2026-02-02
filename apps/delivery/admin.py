@@ -237,8 +237,12 @@ class BabyAdmin(admin.ModelAdmin):
         if not obj.birth_weight_grams:
             return '-'
         
-        # Calculate weight in kg from grams
-        weight_kg = obj.birth_weight_grams / 1000
+        try:
+            # Force conversion to float to handle SafeString or any string type
+            weight_grams = float(str(obj.birth_weight_grams).replace(',', ''))
+            weight_kg = weight_grams / 1000
+        except (ValueError, TypeError, AttributeError):
+            return '-'
         
         # Determine color based on low birth weight status
         color = 'red' if obj.is_low_birth_weight else 'green'
