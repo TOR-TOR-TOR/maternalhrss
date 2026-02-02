@@ -152,7 +152,6 @@ class BabyAdmin(admin.ModelAdmin):
         'age_in_days',
         'age_in_weeks',
         'age_in_months',
-        'birth_weight_kg',
         'weight_category',
         'created_at',
         'updated_at',
@@ -177,7 +176,6 @@ class BabyAdmin(admin.ModelAdmin):
         ('Birth Measurements', {
             'fields': (
                 'birth_weight_grams',
-                'birth_weight_kg',
                 'weight_category',
                 'birth_length_cm',
                 'head_circumference_cm',
@@ -217,9 +215,11 @@ class BabyAdmin(admin.ModelAdmin):
     def display_name_formatted(self, obj):
         icon = '♂' if obj.gender == 'M' else '♀'
         color = '#2196F3' if obj.gender == 'M' else '#E91E63'
+        # Convert to string to ensure it's not a SafeString
+        name = str(obj.display_name) if obj.display_name else ''
         return format_html(
             '<span style="color: {};">{} {}</span>',
-            color, icon, obj.display_name
+            color, icon, name
         )
     display_name_formatted.short_description = 'Name'
     
@@ -244,12 +244,15 @@ class BabyAdmin(admin.ModelAdmin):
         weight_grams = obj.birth_weight_grams  # This is an IntegerField
         weight_kg = weight_grams / 1000.0
         
+        # Format the number FIRST, then pass as string to format_html
+        weight_formatted = f"{weight_kg:.2f}"
+        
         # Determine color based on low birth weight status
         color = 'red' if weight_grams < 2500 else 'green'
         
         return format_html(
-            '<span style="color: {};">{:.2f} kg</span>',
-            color, weight_kg
+            '<span style="color: {};">{} kg</span>',
+            color, weight_formatted
         )
     weight_display.short_description = 'Birth Weight'
     
