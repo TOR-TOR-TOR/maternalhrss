@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.mothers',
     'apps.anc',
-
+    'apps.immunization',
+    'apps.delivery',
 ]
 
 # Custom user model
