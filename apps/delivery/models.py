@@ -4,6 +4,8 @@ from django.utils import timezone
 from datetime import date, timedelta
 from apps.users.models import CustomUser, Facility
 from apps.mothers.models import Mother, Pregnancy
+from decimal import Decimal
+
 
 
 class Delivery(models.Model):
@@ -340,6 +342,8 @@ class Baby(models.Model):
     
     @property
     def birth_weight_kg(self):
+        if self.birth_weight_grams is None
+            return None
         """Convert birth weight to kilograms"""
         return self.birth_weight_grams / 1000
     
