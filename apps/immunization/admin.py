@@ -10,6 +10,7 @@ class VaccineTypeAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
     ordering = ['recommended_age_weeks', 'name']
 
+
 @admin.register(ImmunizationSchedule)
 class ImmunizationScheduleAdmin(admin.ModelAdmin):
     list_display = [
@@ -18,7 +19,7 @@ class ImmunizationScheduleAdmin(admin.ModelAdmin):
         'scheduled_date_display',
         'baby_age_at_schedule',
         'status_display',
-        'administered_date',
+        'administration_date',   # ← FIXED
         'facility',
     ]
     
@@ -35,6 +36,52 @@ class ImmunizationScheduleAdmin(admin.ModelAdmin):
         'baby__mother__first_name',
         'baby__mother__last_name',
     ]
+    
+    readonly_fields = [
+        'created_at',
+        'updated_at',
+    ]
+    
+    fieldsets = (
+        ('Baby & Vaccine', {
+            'fields': ('baby', 'vaccine')
+        }),
+        ('Schedule', {
+            'fields': ('scheduled_date',)
+        }),
+        ('Administration', {
+            'fields': (
+                'administered',
+                'administration_date',
+                'batch_number',
+                'expiry_date',
+                'administered_by',
+            )
+        }),
+        ('Status', {
+            'fields': ('missed',)
+        }),
+        ('Adverse Events', {
+            'fields': (
+                'adverse_event',
+                'adverse_event_details',
+            ),
+            'classes': ('collapse',)
+        }),
+        ('Facility & Notes', {
+            'fields': (
+                'facility',
+                'notes',
+            )
+        }),
+        ('Metadata', {
+            'fields': (
+                'created_at',
+                'updated_at',
+            ),
+            'classes': ('collapse',)
+        }),
+    )
     
     # Disable manual creation - vaccines auto-generate when baby is born
     def has_add_permission(self, request):
@@ -59,22 +106,22 @@ class ImmunizationScheduleAdmin(admin.ModelAdmin):
         
         if obj.administered:
             return format_html(
-                '{}',
+                '<span style="color: green;">{}</span>',
                 obj.scheduled_date.strftime('%d %b %Y')
             )
         elif obj.missed:
             return format_html(
-                '{}',
+                '<span style="color: red; font-weight: bold;">{}</span>',
                 obj.scheduled_date.strftime('%d %b %Y')
             )
         elif obj.scheduled_date < today:
             return format_html(
-                '{} (OVERDUE)',
+                '<span style="color: orange; font-weight: bold;">{} (OVERDUE)</span>',
                 obj.scheduled_date.strftime('%d %b %Y')
             )
         elif obj.scheduled_date == today:
             return format_html(
-                '{} (TODAY)',
+                '<span style="color: blue; font-weight: bold;">{} (TODAY)</span>',
                 obj.scheduled_date.strftime('%d %b %Y')
             )
         else:
@@ -93,7 +140,19 @@ class ImmunizationScheduleAdmin(admin.ModelAdmin):
         icon, color, weight = status_config.get(obj.status, ('?', 'black', 'normal'))
         
         return format_html(
-            '{} {}',
+            '<span style="color: {}; font-weight: {};">{} {}</span>',
             color, weight, icon, obj.status
         )
     status_display.short_description = 'Status'
+    
+    def admin_date_display(self, obj):
+        """Display when vaccine was administered"""
+        if obj.administration_date:
+            return obj.administration_date.strftime('%d %b %Y')
+        return '-'
+    admin_date_display.short_description = 'Given On'
+    
+    def get_queryset(self, request):
+        """Optimize queries"""
+        qs = super().get_queryset(request)
+        return qs.select_related('baby__mother', 'vaccine', 'facility')
