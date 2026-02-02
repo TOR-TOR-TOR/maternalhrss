@@ -103,6 +103,9 @@ class DeliveryAdmin(admin.ModelAdmin):
     def gestational_age(self, obj):
         ga = obj.gestational_age_at_delivery
         if ga:
+            # Ensure ga is an integer
+            ga_value = int(ga) if ga else 0
+            
             if obj.is_preterm:
                 color = 'orange'
                 label = 'Preterm'
@@ -114,7 +117,7 @@ class DeliveryAdmin(admin.ModelAdmin):
                 label = 'Term'
             return format_html(
                 '<span>{} weeks (<span style="color: {};">{}</span>)</span>',
-                ga, color, label
+                ga_value, color, label
             )
         return '-'
     gestational_age.short_description = 'GA'
@@ -237,15 +240,12 @@ class BabyAdmin(admin.ModelAdmin):
         if not obj.birth_weight_grams:
             return '-'
         
-        try:
-            # Force conversion to float to handle SafeString or any string type
-            weight_grams = float(str(obj.birth_weight_grams).replace(',', ''))
-            weight_kg = weight_grams / 1000
-        except (ValueError, TypeError, AttributeError):
-            return '-'
+        # Calculate weight directly from the field, not from the property
+        weight_grams = obj.birth_weight_grams  # This is an IntegerField
+        weight_kg = weight_grams / 1000.0
         
         # Determine color based on low birth weight status
-        color = 'red' if obj.is_low_birth_weight else 'green'
+        color = 'red' if weight_grams < 2500 else 'green'
         
         return format_html(
             '<span style="color: {};">{:.2f} kg</span>',
