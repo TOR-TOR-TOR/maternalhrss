@@ -360,8 +360,10 @@ class Baby(models.Model):
     @property
     def weight_category(self):
         """Categorize birth weight"""
-        if self.birth_weight_grams < 1500:
-            return "Very Low Birth Weight"
+        if self.birth_weight_grams is None:
+            return None
+        elif self.birth_weight_grams < 1500
+            return "very Low Birth Weight"
         elif self.birth_weight_grams < 2500:
             return "Low Birth Weight"
         elif self.birth_weight_grams <= 4000:
