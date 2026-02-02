@@ -94,7 +94,7 @@ class DeliveryAdmin(admin.ModelAdmin):
             'NEONATAL_DEATH': 'red',
         }
         return format_html(
-            '{}',
+            '<span style="color: {};">{}</span>',
             colors.get(obj.delivery_outcome, 'black'),
             obj.get_delivery_outcome_display()
         )
@@ -113,7 +113,7 @@ class DeliveryAdmin(admin.ModelAdmin):
                 color = 'green'
                 label = 'Term'
             return format_html(
-                '{} weeks ({}</ span>)',
+                '<span>{} weeks (<span style="color: {};">{}</span>)</span>',
                 ga, color, label
             )
         return '-'
@@ -215,7 +215,7 @@ class BabyAdmin(admin.ModelAdmin):
         icon = '♂' if obj.gender == 'M' else '♀'
         color = '#2196F3' if obj.gender == 'M' else '#E91E63'
         return format_html(
-            '{} {}',
+            '<span style="color: {};">{} {}</span>',
             color, icon, obj.display_name
         )
     display_name_formatted.short_description = 'Name'
@@ -233,13 +233,19 @@ class BabyAdmin(admin.ModelAdmin):
     age_display.short_description = 'Age'
     
     def weight_display(self, obj):
-        if obj.is_low_birth_weight:
-            color = 'red'
-        else:
-            color = 'green'
+        # Handle case where birth_weight_grams might be None
+        if not obj.birth_weight_grams:
+            return '-'
+        
+        # Calculate weight in kg from grams
+        weight_kg = obj.birth_weight_grams / 1000
+        
+        # Determine color based on low birth weight status
+        color = 'red' if obj.is_low_birth_weight else 'green'
+        
         return format_html(
-            '{:.2f} kg',
-            color, obj.birth_weight_kg
+            '<span style="color: {};">{:.2f} kg</span>',
+            color, weight_kg
         )
     weight_display.short_description = 'Birth Weight'
     
