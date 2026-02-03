@@ -207,7 +207,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         'delivery_status_display',
         'retry_display',
         'cost_display',
-        'context_display',
         'facility',
     ]
     
@@ -235,7 +234,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         'created_at',
         'updated_at',
         'message_preview',
-        'context_display',
     ]
     
     date_hierarchy = 'scheduled_datetime'
@@ -263,7 +261,6 @@ class SentReminderAdmin(admin.ModelAdmin):
                 'anc_visit',
                 'baby',
                 'immunization',
-                'context_display',
             ),
             'classes': ('collapse',)
         }),
@@ -454,6 +451,11 @@ class SentReminderAdmin(admin.ModelAdmin):
             )
         return '-'
     cost_display.short_description = 'Cost'
+    
+    def context_display(self, obj):
+        """Display what this reminder was about"""
+        return obj.get_context_display()
+    context_display.short_description = 'Context'
     
     def message_preview(self, obj):
         """Display message in a nice box"""
