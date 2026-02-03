@@ -1,6 +1,13 @@
+# Core Django
 asgiref==3.11.0
 Django==4.2
+sqlparse==0.5.5
+
+# Database
 mysqlclient==2.2.7
+
+# Environment Variables
 python-dotenv==1.2.1
 pytz==2024.1
-sqlparse==0.5.5
+
+
