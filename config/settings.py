@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'apps.mothers',
     'apps.anc',
     'apps.immunization',
+    'apps.reminders',
     'apps.delivery',
 ]
 
