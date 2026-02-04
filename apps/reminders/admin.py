@@ -444,9 +444,11 @@ class SentReminderAdmin(admin.ModelAdmin):
     def cost_display(self, obj):
         """Display SMS cost"""
         if obj.sms_cost:
+            # Convert to float first to avoid SafeString issues
+            cost_value = float(obj.sms_cost)
             return format_html(
                 '<span style="color: #4CAF50;">KES {:.2f}</span>',
-                obj.sms_cost
+                cost_value
             )
         return '-'
     cost_display.short_description = 'Cost'
