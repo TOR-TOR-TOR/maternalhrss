@@ -216,7 +216,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         'is_manual',
         'facility',
         'scheduled_datetime',
-        ('retry_count', admin.EmptyFieldListFilter),
     ]
     
     search_fields = [
@@ -559,6 +558,25 @@ class SentReminderAdmin(admin.ModelAdmin):
         """Add custom filters"""
         filters = list(self.list_filter)
         
+        class RetryCountFilter(admin.SimpleListFilter):
+            title = 'Retry Status'
+            parameter_name = 'has_retries'
+            
+            def lookups(self, request, model_admin):
+                return (
+                    ('yes', 'Has Retries'),
+                    ('no', 'No Retries'),
+                    ('max', 'Max Retries Reached'),
+                )
+            
+            def queryset(self, request, queryset):
+                if self.value() == 'yes':
+                    return queryset.filter(retry_count__gt=0)
+                elif self.value() == 'no':
+                    return queryset.filter(retry_count=0)
+                elif self.value() == 'max':
+                    return queryset.filter(retry_count__gte=3)
+        
         class TodayRemindersFilter(admin.SimpleListFilter):
             title = "Today's Reminders"
             parameter_name = 'today'
@@ -597,7 +615,7 @@ class SentReminderAdmin(admin.ModelAdmin):
                 elif self.value() == 'pending':
                     return queryset.filter(delivery_status='PENDING')
         
-        filters.extend([TodayRemindersFilter, DeliveryRateFilter])
+        filters.extend([RetryCountFilter, TodayRemindersFilter, DeliveryRateFilter])
         return filters
 
 
