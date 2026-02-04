@@ -206,7 +206,7 @@ class SentReminderAdmin(admin.ModelAdmin):
         'scheduled_vs_sent',
         'delivery_status_display',
         'retry_display',
-        'cost_display',
+       # 'cost_display',
         'facility',
     ]
     
