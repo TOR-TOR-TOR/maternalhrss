@@ -98,8 +98,13 @@ DATABASES = {
         'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': os.getenv("DB_HOST"),
         'PORT': os.getenv("DB_PORT"),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
-}
+}        
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
