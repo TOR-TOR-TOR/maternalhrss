@@ -215,6 +215,7 @@ class SentReminder(models.Model):
     
     # Timing
     scheduled_datetime = models.DateTimeField(
+        default=timezone.now,
         help_text="When system scheduled this SMS to be sent"
     )
     sent_datetime = models.DateTimeField(
