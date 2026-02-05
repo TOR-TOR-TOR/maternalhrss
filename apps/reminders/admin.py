@@ -206,7 +206,7 @@ class SentReminderAdmin(admin.ModelAdmin):
         'scheduled_vs_sent',
         'delivery_status_display',
         'retry_display',
-       # 'cost_display',
+        'cost_display',
         'facility',
     ]
     
@@ -481,6 +481,74 @@ class SentReminderAdmin(admin.ModelAdmin):
             'immunization',
             'sent_by'
         )
+    
+    def save_model(self, request, obj, form, change):
+        """
+        Auto-fill mother from related records and validate relationships
+        """
+        # Auto-fill mother from related records
+        if not obj.mother:
+            if obj.pregnancy:
+                obj.mother = obj.pregnancy.mother
+            elif obj.anc_visit:
+                obj.mother = obj.anc_visit.pregnancy.mother
+            elif obj.baby:
+                obj.mother = obj.baby.mother
+            elif obj.immunization:
+                obj.mother = obj.immunization.baby.mother
+        
+        # Validate that mother matches related records
+        if obj.pregnancy and obj.mother != obj.pregnancy.mother:
+            from django.contrib import messages
+            messages.error(
+                request,
+                f"⚠️ Mother mismatch! Selected mother ({obj.mother.full_name}) doesn't match "
+                f"pregnancy mother ({obj.pregnancy.mother.full_name}). Auto-corrected."
+            )
+            obj.mother = obj.pregnancy.mother
+        
+        if obj.anc_visit and obj.mother != obj.anc_visit.pregnancy.mother:
+            from django.contrib import messages
+            messages.error(
+                request,
+                f"⚠️ Mother mismatch! Selected mother doesn't match ANC visit mother. Auto-corrected."
+            )
+            obj.mother = obj.anc_visit.pregnancy.mother
+        
+        if obj.baby and obj.mother != obj.baby.mother:
+            from django.contrib import messages
+            messages.error(
+                request,
+                f"⚠️ Mother mismatch! Selected mother doesn't match baby's mother. Auto-corrected."
+            )
+            obj.mother = obj.baby.mother
+        
+        if obj.immunization and obj.mother != obj.immunization.baby.mother:
+            from django.contrib import messages
+            messages.error(
+                request,
+                f"⚠️ Mother mismatch! Selected mother doesn't match immunization mother. Auto-corrected."
+            )
+            obj.mother = obj.immunization.baby.mother
+        
+        # Auto-fill phone number from mother
+        if obj.mother and not obj.phone_number:
+            obj.phone_number = obj.mother.phone_number
+        
+        # Auto-fill facility if not set
+        if not obj.facility:
+            if obj.pregnancy:
+                obj.facility = obj.pregnancy.facility
+            elif obj.anc_visit:
+                obj.facility = obj.anc_visit.facility
+            elif obj.baby:
+                obj.facility = obj.baby.facility
+            elif obj.immunization:
+                obj.facility = obj.immunization.facility
+            elif obj.mother:
+                obj.facility = obj.mother.facility
+        
+        super().save_model(request, obj, form, change)
     
     # Custom Actions
     
