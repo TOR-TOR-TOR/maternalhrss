@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add custom styles here later */
+/* Optional custom components */
 @layer components {
   .btn-primary {
     @apply bg-primary text-white px-6 py-3 rounded-lg font-medium
@@ -10,5 +10,9 @@
   }
   .card {
     @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100;
+  }
+  .input-field {
+    @apply w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg
+           focus:ring-2 focus:ring-primary focus:border-primary outline-none;
   }
 }
