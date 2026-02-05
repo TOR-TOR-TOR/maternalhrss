@@ -138,6 +138,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Static files (CSS, JavaScript, Images)
+# -------------------------------------------------------------------------
+STATIC_URL = '/static/'
+
+# Where Django looks for static files during development
+STATICFILES_DIRS = [
+    BASE_DIR / "static",              # ← your Tailwind output + js folder
+]
+
+# Where collectstatic will copy ALL static files to (production / collectstatic destination)
+STATIC_ROOT = BASE_DIR / "staticfiles"   # ← this was missing
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
