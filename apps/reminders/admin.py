@@ -442,15 +442,16 @@ class SentReminderAdmin(admin.ModelAdmin):
     retry_display.short_description = 'Retries'
     
     def cost_display(self, obj):
-        """Display SMS cost"""
+    """Display SMS cost"""
         if obj.sms_cost:
-            # Convert to float first to avoid SafeString issues
-            cost_value = float(obj.sms_cost)
+        # Format as string first, then pass to format_html
+        cost_str = f"KES {float(obj.sms_cost):.2f}"
             return format_html(
-                '<span style="color: #4CAF50;">KES {:.2f}</span>',
-                cost_value
-            )
+            '<span style="color: #4CAF50;">{}</span>',
+            cost_str
+        )
         return '-'
+
     cost_display.short_description = 'Cost'
     
     def context_display(self, obj):
