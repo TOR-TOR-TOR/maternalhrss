@@ -4,43 +4,43 @@
 {% block title %}Login - Maternal Health System{% endblock %}
 
 {% block extra_css %}
-  <!-- Optional: page-specific overrides if needed -->
+  <!-- Optional page-specific overrides -->
   <style>
     .login-bg {
-      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e9 100%);
     }
   </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="login-bg min-h-screen flex items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md">
+<div class="login-bg min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+  <div class="w-full max-w-md space-y-8">
 
-    <!-- Logo / Brand -->
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full shadow-lg mb-4">
-        <i class="fas fa-heartbeat text-white text-3xl"></i>
+    <!-- Header / Branding -->
+    <div class="text-center">
+      <div class="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center shadow-md mb-4">
+        <i class="fas fa-heartbeat text-white text-4xl"></i>
       </div>
-      <h1 class="text-3xl font-bold text-gray-800">
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
         Maternal Health System
       </h1>
-      <p class="text-gray-600 mt-2">
-        Secure access for healthcare providers
+      <p class="mt-2 text-sm text-gray-600">
+        Secure access for healthcare professionals
       </p>
     </div>
 
     <!-- Login Card -->
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-      <div class="px-8 py-10">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div class="px-8 py-10 sm:px-10">
 
         <!-- Messages -->
         {% if messages %}
           <div class="mb-6 space-y-3">
             {% for message in messages %}
               <div class="flex items-center gap-3 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border-l-4 border-red-500{% else %}bg-green-50 text-green-800 border-l-4 border-green-500{% endif %}">
-                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-xl"></i>
-                <span>{{ message }}</span>
+                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-xl flex-shrink-0"></i>
+                <span class="text-sm">{{ message }}</span>
               </div>
             {% endfor %}
           </div>
@@ -51,32 +51,32 @@
           {% csrf_token %}
 
           <!-- Username -->
-          <div>
-            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          <div class="relative">
+            <label for="{{ form.username.id_for_label }}" 
+                   class="absolute left-10 top-3 text-xs font-medium text-gray-500 transition-all duration-200 
+                          {% if form.username.value %} -translate-y-6 scale-90 text-primary {% else %} text-gray-700 {% endif %}">
               Username
             </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-user text-gray-400"></i>
-              </div>
-              {{ form.username }}
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-user text-gray-400"></i>
             </div>
+            {{ form.username|add_class:"input-field block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" }}
             {% if form.username.errors %}
               <p class="mt-1 text-sm text-red-600">{{ form.username.errors|join:" " }}</p>
             {% endif %}
           </div>
 
           <!-- Password -->
-          <div>
-            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          <div class="relative">
+            <label for="{{ form.password.id_for_label }}" 
+                   class="absolute left-10 top-3 text-xs font-medium text-gray-500 transition-all duration-200 
+                          {% if form.password.value %} -translate-y-6 scale-90 text-primary {% else %} text-gray-700 {% endif %}">
               Password
             </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-lock text-gray-400"></i>
-              </div>
-              {{ form.password }}
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="fas fa-lock text-gray-400"></i>
             </div>
+            {{ form.password|add_class:"input-field block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" }}
             {% if form.password.errors %}
               <p class="mt-1 text-sm text-red-600">{{ form.password.errors|join:" " }}</p>
             {% endif %}
@@ -84,7 +84,8 @@
 
           <!-- Submit Button -->
           <div>
-            <button type="submit" class="w-full btn-primary flex items-center justify-center gap-2">
+            <button type="submit" 
+                    class="w-full btn-primary flex items-center justify-center gap-2 py-3 text-base font-medium">
               <i class="fas fa-sign-in-alt"></i>
               Sign In
             </button>
@@ -92,15 +93,15 @@
         </form>
 
         <!-- Help text -->
-        <div class="mt-6 text-center text-sm text-gray-500">
-          <p>Forgot password? Contact your facility manager or system administrator.</p>
+        <div class="mt-8 text-center text-sm text-gray-500">
+          <p>Forgot your password? Contact your facility manager or system administrator.</p>
         </div>
 
       </div>
     </div>
 
     <!-- Footer note -->
-    <p class="text-center text-sm text-gray-500 mt-8">
+    <p class="mt-8 text-center text-sm text-gray-500">
       © {{ 'now'|date:"Y" }} Maternal Health System
     </p>
 

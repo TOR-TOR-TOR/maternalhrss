@@ -5,14 +5,18 @@
 /* Optional custom components */
 @layer components {
   .btn-primary {
-    @apply bg-primary text-white px-6 py-3 rounded-lg font-medium
-           hover:bg-primary-dark transition duration-200 shadow-md;
+    @apply bg-primary text-white font-medium rounded-lg shadow-md
+           hover:bg-primary-dark focus:ring-2 focus:ring-primary focus:ring-offset-2
+           transition duration-200;
   }
+
   .card {
-    @apply bg-white rounded-xl shadow-lg p-6 border border-gray-100;
+    @apply bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden;
   }
+
   .input-field {
-    @apply w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg
-           focus:ring-2 focus:ring-primary focus:border-primary outline-none;
+    @apply block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg
+           focus:ring-2 focus:ring-primary focus:border-primary outline-none
+           transition-all duration-200;
   }
 }
