@@ -95,10 +95,8 @@ class ReminderTemplateAdmin(admin.ModelAdmin):
         }
         color = colors.get(obj.reminder_type, '#666')
         return format_html(
-            '<span style="background: {}; color: white; padding: 4px 8px; '
-            'border-radius: 4px; font-size: 0.9em;">{}</span>',
-            color,
-            obj.get_reminder_type_display()
+            '<span class="inline-block px-2 py-1 text-xs font-semibold text-white rounded" '
+            f'style="background-color: {color};">{obj.get_reminder_type_display()}</span>'
         )
     reminder_type_display.short_description = 'Type'
     
@@ -107,7 +105,7 @@ class ReminderTemplateAdmin(admin.ModelAdmin):
         preview = obj.message_template[:60]
         if len(obj.message_template) > 60:
             preview += '...'
-        return format_html('<span style="color: #666; font-style: italic;">{}</span>', preview)
+        return format_html('<span class="text-gray-600 italic">{}</span>', preview)
     message_preview.short_description = 'Message Preview'
     
     def timing_display(self, obj):
@@ -129,12 +127,11 @@ class ReminderTemplateAdmin(admin.ModelAdmin):
     def usage_count(self, obj):
         """Show how many times this template has been used"""
         count = obj.sent_reminders.count()
-        return format_html('<span style="color: #2196F3; font-weight: bold;">{}</span>', count)
+        return format_html('<span class="text-blue-600 font-bold">{}</span>', count)
     usage_count.short_description = 'Times Used'
     
     def preview_rendered_message(self, obj):
         """Show example of rendered message"""
-        # Sample context
         context = {
             'name': 'Mary',
             'visit_number': '2',
@@ -149,8 +146,7 @@ class ReminderTemplateAdmin(admin.ModelAdmin):
         
         rendered = obj.render_message(context)
         return format_html(
-            '<div style="background: #f5f5f5; padding: 10px; border-radius: 4px; '
-            'font-family: monospace; white-space: pre-wrap;">{}</div>',
+            '<div class="bg-gray-100 p-3 rounded font-mono whitespace-pre-wrap text-sm">{}</div>',
             rendered
         )
     preview_rendered_message.short_description = 'Preview (with sample data)'
@@ -161,21 +157,17 @@ class ReminderTemplateAdmin(admin.ModelAdmin):
         return qs.annotate(usage=Count('sent_reminders'))
     
     # Custom Actions
-    
     def activate_templates(self, request, queryset):
-        """Activate selected templates"""
         updated = queryset.update(is_active=True)
         self.message_user(request, f"✓ Activated {updated} template(s)")
     activate_templates.short_description = "✓ Activate selected templates"
     
     def deactivate_templates(self, request, queryset):
-        """Deactivate selected templates"""
         updated = queryset.update(is_active=False)
         self.message_user(request, f"✗ Deactivated {updated} template(s)")
     deactivate_templates.short_description = "✗ Deactivate selected templates"
     
     def test_render(self, request, queryset):
-        """Test rendering selected templates"""
         for template in queryset:
             context = {
                 'name': 'Test User',
@@ -306,7 +298,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     ]
     
     def status_icon(self, obj):
-        """Display status with icon"""
         icons = {
             'PENDING': '⏳',
             'SENT': '📤',
@@ -335,7 +326,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     status_icon.short_description = ''
     
     def mother_name(self, obj):
-        """Display mother's name with link"""
         return format_html(
             '<a href="/admin/mothers/mother/{}/change/">{}</a>',
             obj.mother.id,
@@ -344,7 +334,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     mother_name.short_description = 'Mother'
     
     def reminder_type_display(self, obj):
-        """Display reminder type with badge"""
         colors = {
             'ANC_UPCOMING': '#2196F3',
             'ANC_TODAY': '#4CAF50',
@@ -356,7 +345,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         }
         color = colors.get(obj.reminder_type, '#666')
         
-        # Shortened labels for display
         short_labels = {
             'ANC_UPCOMING': 'ANC ⏰',
             'ANC_TODAY': 'ANC 📅',
@@ -369,48 +357,43 @@ class SentReminderAdmin(admin.ModelAdmin):
         label = short_labels.get(obj.reminder_type, obj.reminder_type)
         
         return format_html(
-            '<span style="background: {}; color: white; padding: 3px 6px; '
-            'border-radius: 3px; font-size: 0.85em; white-space: nowrap;">{}</span>',
-            color,
-            label
+            '<span class="inline-block px-2 py-0.5 text-xs font-medium text-white rounded" '
+            f'style="background-color: {color};">{label}</span>'
         )
     reminder_type_display.short_description = 'Type'
     
     def phone_display(self, obj):
-        """Display phone number"""
         return format_html(
-            '<span style="font-family: monospace;">{}</span>',
+            '<span class="font-mono">{}</span>',
             obj.phone_number
         )
     phone_display.short_description = 'Phone'
     
     def scheduled_vs_sent(self, obj):
-        """Display scheduled vs actual send time"""
         scheduled = obj.scheduled_datetime.strftime('%d %b, %H:%M')
         
         if obj.sent_datetime:
             sent = obj.sent_datetime.strftime('%d %b, %H:%M')
             delay = (obj.sent_datetime - obj.scheduled_datetime).total_seconds() / 60
             
-            if delay > 5:  # More than 5 minutes delay
+            if delay > 5:
                 return format_html(
-                    '<div>Scheduled: {}</div><div style="color: orange;">Sent: {} <small>(+{:.0f}m)</small></div>',
+                    '<div>Scheduled: {}</div><div class="text-orange-600">Sent: {} <small>(+{:.0f}m)</small></div>',
                     scheduled, sent, delay
                 )
             else:
                 return format_html(
-                    '<div>Scheduled: {}</div><div style="color: green;">Sent: {}</div>',
+                    '<div>Scheduled: {}</div><div class="text-green-600">Sent: {}</div>',
                     scheduled, sent
                 )
         else:
             return format_html(
-                '<div>Scheduled: {}</div><div style="color: gray;">Not sent yet</div>',
+                '<div>Scheduled: {}</div><div class="text-gray-500">Not sent yet</div>',
                 scheduled
             )
     scheduled_vs_sent.short_description = 'Timing'
     
     def delivery_status_display(self, obj):
-        """Display delivery status with color"""
         colors = {
             'PENDING': '#FF9800',
             'SENT': '#2196F3',
@@ -422,14 +405,13 @@ class SentReminderAdmin(admin.ModelAdmin):
         color = colors.get(obj.delivery_status, '#666')
         
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
+            '<span class="font-bold" style="color: {};">{}</span>',
             color,
             obj.get_delivery_status_display()
         )
     delivery_status_display.short_description = 'Status'
     
     def retry_display(self, obj):
-        """Display retry information"""
         if obj.retry_count == 0:
             return '-'
         
@@ -442,35 +424,38 @@ class SentReminderAdmin(admin.ModelAdmin):
     retry_display.short_description = 'Retries'
     
     def cost_display(self, obj):
-    """Display SMS cost"""
-        if obj.sms_cost:
-        # Format as string first, then pass to format_html
-        cost_str = f"KES {float(obj.sms_cost):.2f}"
-            return format_html(
-            '<span style="color: #4CAF50;">{}</span>',
-            cost_str
+        """
+        Safely display SMS cost - this was the source of the ValueError
+        """
+        if obj.sms_cost is None:
+            return format_html('<span class="text-gray-400">-</span>')
+        
+        try:
+            # Convert safely (works with Decimal, float, str that looks like number)
+            cost_value = float(obj.sms_cost)
+            formatted = f"KES {cost_value:,.2f}"
+            color_class = "text-green-600"
+        except (TypeError, ValueError):
+            # fallback in case the field contains junk
+            formatted = str(obj.sms_cost)
+            color_class = "text-amber-600"
+        
+        return format_html(
+            '<span class="font-medium {}">{}</span>',
+            color_class,
+            formatted
         )
-        return '-'
-
     cost_display.short_description = 'Cost'
     
-    def context_display(self, obj):
-        """Display what this reminder was about"""
-        return obj.get_context_display()
-    context_display.short_description = 'Context'
-    
     def message_preview(self, obj):
-        """Display message in a nice box"""
         return format_html(
-            '<div style="background: #f5f5f5; padding: 10px; border-radius: 4px; '
-            'border-left: 3px solid #2196F3; max-width: 500px; '
-            'font-family: Arial, sans-serif; line-height: 1.5;">{}</div>',
+            '<div class="bg-gray-50 p-3 rounded border-l-4 border-blue-500 max-w-xl text-sm whitespace-pre-wrap font-sans leading-relaxed">'
+            '{}</div>',
             obj.message_content
         )
     message_preview.short_description = 'Message Content'
     
     def get_queryset(self, request):
-        """Optimize queries"""
         qs = super().get_queryset(request)
         return qs.select_related(
             'mother',
@@ -487,7 +472,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         """
         Auto-fill mother from related records and validate relationships
         """
-        # Auto-fill mother from related records
         if not obj.mother:
             if obj.pregnancy:
                 obj.mother = obj.pregnancy.mother
@@ -498,7 +482,6 @@ class SentReminderAdmin(admin.ModelAdmin):
             elif obj.immunization:
                 obj.mother = obj.immunization.baby.mother
         
-        # Validate that mother matches related records
         if obj.pregnancy and obj.mother != obj.pregnancy.mother:
             from django.contrib import messages
             messages.error(
@@ -532,11 +515,9 @@ class SentReminderAdmin(admin.ModelAdmin):
             )
             obj.mother = obj.immunization.baby.mother
         
-        # Auto-fill phone number from mother
         if obj.mother and not obj.phone_number:
             obj.phone_number = obj.mother.phone_number
         
-        # Auto-fill facility if not set
         if not obj.facility:
             if obj.pregnancy:
                 obj.facility = obj.pregnancy.facility
@@ -552,9 +533,7 @@ class SentReminderAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
     
     # Custom Actions
-    
     def mark_as_sent(self, request, queryset):
-        """Mark selected reminders as sent"""
         count = 0
         for reminder in queryset.filter(delivery_status='PENDING'):
             reminder.mark_as_sent()
@@ -563,7 +542,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     mark_as_sent.short_description = "📤 Mark as SENT"
     
     def mark_as_delivered(self, request, queryset):
-        """Mark selected reminders as delivered"""
         count = 0
         for reminder in queryset.filter(delivery_status='SENT'):
             reminder.mark_as_delivered()
@@ -572,7 +550,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     mark_as_delivered.short_description = "✅ Mark as DELIVERED"
     
     def mark_as_failed(self, request, queryset):
-        """Mark selected reminders as failed"""
         count = 0
         for reminder in queryset.exclude(delivery_status='DELIVERED'):
             reminder.mark_as_failed(reason="Manually marked as failed by admin")
@@ -581,7 +558,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     mark_as_failed.short_description = "❌ Mark as FAILED"
     
     def retry_failed(self, request, queryset):
-        """Retry failed reminders"""
         count = 0
         for reminder in queryset.filter(delivery_status='FAILED'):
             if reminder.retry_count < reminder.max_retries:
@@ -593,7 +569,6 @@ class SentReminderAdmin(admin.ModelAdmin):
     retry_failed.short_description = "🔄 Retry failed reminders"
     
     def export_to_csv(self, request, queryset):
-        """Export selected reminders to CSV"""
         import csv
         from django.http import HttpResponse
         
@@ -622,72 +597,6 @@ class SentReminderAdmin(admin.ModelAdmin):
         self.message_user(request, f"✓ Exported {queryset.count()} reminders to CSV")
         return response
     export_to_csv.short_description = "📥 Export to CSV"
-    
-    # Custom Filters
-    
-    def get_list_filter(self, request):
-        """Add custom filters"""
-        filters = list(self.list_filter)
-        
-        class RetryCountFilter(admin.SimpleListFilter):
-            title = 'Retry Status'
-            parameter_name = 'has_retries'
-            
-            def lookups(self, request, model_admin):
-                return (
-                    ('yes', 'Has Retries'),
-                    ('no', 'No Retries'),
-                    ('max', 'Max Retries Reached'),
-                )
-            
-            def queryset(self, request, queryset):
-                if self.value() == 'yes':
-                    return queryset.filter(retry_count__gt=0)
-                elif self.value() == 'no':
-                    return queryset.filter(retry_count=0)
-                elif self.value() == 'max':
-                    return queryset.filter(retry_count__gte=3)
-        
-        class TodayRemindersFilter(admin.SimpleListFilter):
-            title = "Today's Reminders"
-            parameter_name = 'today'
-            
-            def lookups(self, request, model_admin):
-                return (
-                    ('yes', 'Scheduled Today'),
-                    ('sent', 'Sent Today'),
-                )
-            
-            def queryset(self, request, queryset):
-                today = timezone.now().date()
-                if self.value() == 'yes':
-                    return queryset.filter(scheduled_datetime__date=today)
-                elif self.value() == 'sent':
-                    return queryset.filter(sent_datetime__date=today)
-        
-        class DeliveryRateFilter(admin.SimpleListFilter):
-            title = 'Delivery Success'
-            parameter_name = 'delivery_success'
-            
-            def lookups(self, request, model_admin):
-                return (
-                    ('delivered', 'Successfully Delivered'),
-                    ('failed', 'Failed/Rejected'),
-                    ('pending', 'Still Pending'),
-                )
-            
-            def queryset(self, request, queryset):
-                if self.value() == 'delivered':
-                    return queryset.filter(delivery_status='DELIVERED')
-                elif self.value() == 'failed':
-                    return queryset.filter(
-                        delivery_status__in=['FAILED', 'REJECTED', 'INVALID_NUMBER']
-                    )
-                elif self.value() == 'pending':
-                    return queryset.filter(delivery_status='PENDING')
-        
-        filters.extend([RetryCountFilter, TodayRemindersFilter, DeliveryRateFilter])
-        return filters
 
 
 @admin.register(SystemLog)
@@ -741,7 +650,6 @@ class SystemLogAdmin(admin.ModelAdmin):
     
     ordering = ['-timestamp']
     
-    # Make logs read-only - cannot be edited or deleted
     def has_add_permission(self, request):
         return False
     
@@ -749,7 +657,6 @@ class SystemLogAdmin(admin.ModelAdmin):
         return False
     
     def has_delete_permission(self, request, obj=None):
-        # Only superusers can delete logs (for cleanup)
         return request.user.is_superuser
     
     fieldsets = (
@@ -770,16 +677,14 @@ class SystemLogAdmin(admin.ModelAdmin):
     )
     
     def timestamp_display(self, obj):
-        """Display timestamp with relative time"""
         return format_html(
-            '<div>{}</div><small style="color: #666;">{}</small>',
+            '<div>{}</div><small class="text-gray-500">{}</small>',
             obj.timestamp.strftime('%d %b %Y, %H:%M:%S'),
             timezone.now() - obj.timestamp
         )
     timestamp_display.short_description = 'When'
     
     def log_level_display(self, obj):
-        """Display log level with color"""
         colors = {
             'INFO': '#2196F3',
             'WARNING': '#FF9800',
@@ -797,24 +702,22 @@ class SystemLogAdmin(admin.ModelAdmin):
         icon = icons.get(obj.log_level, '•')
         
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{} {}</span>',
+            '<span class="font-bold" style="color: {};">{} {}</span>',
             color, icon, obj.get_log_level_display()
         )
     log_level_display.short_description = 'Level'
     
     def user_display(self, obj):
-        """Display user or SYSTEM"""
         if obj.user:
             return format_html(
                 '<a href="/admin/users/customuser/{}/change/">{}</a>',
                 obj.user.id,
                 obj.user.username
             )
-        return format_html('<em style="color: #666;">SYSTEM</em>')
+        return format_html('<em class="text-gray-500">SYSTEM</em>')
     user_display.short_description = 'User'
     
     def action_display(self, obj):
-        """Display action type with icon"""
         icons = {
             'LOGIN': '🔓',
             'LOGOUT': '🔒',
@@ -830,18 +733,16 @@ class SystemLogAdmin(admin.ModelAdmin):
         icon = icons.get(obj.action_type, '•')
         
         return format_html(
-            '{} <span style="font-weight: 500;">{}</span>',
+            '{} <span class="font-medium">{}</span>',
             icon,
             obj.get_action_type_display()
         )
     action_display.short_description = 'Action'
     
     def model_affected(self, obj):
-        """Display model and object ID"""
         if obj.model_name:
             return format_html(
-                '<span style="font-family: monospace;">{}</span> '
-                '<small style="color: #666;">(ID: {})</small>',
+                '<span class="font-mono">{}</span> <small class="text-gray-500">(ID: {})</small>',
                 obj.model_name,
                 obj.object_id or '-'
             )
@@ -849,7 +750,6 @@ class SystemLogAdmin(admin.ModelAdmin):
     model_affected.short_description = 'Model'
     
     def description_preview(self, obj):
-        """Show first 80 characters"""
         preview = obj.description[:80]
         if len(obj.description) > 80:
             preview += '...'
@@ -857,7 +757,6 @@ class SystemLogAdmin(admin.ModelAdmin):
     description_preview.short_description = 'Description'
     
     def get_queryset(self, request):
-        """Optimize queries"""
         qs = super().get_queryset(request)
         return qs.select_related('user', 'facility')
 
