@@ -87,7 +87,7 @@
         {% if messages %}
             <div class="mb-6 space-y-3">
                 {% for message in messages %}
-                    <div class="alert flex items-center gap-3 p-4 rounded-lg shadow-sm {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
+                    <div class="flex items-center gap-3 p-4 rounded-lg shadow-sm {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500{% elif message.tags == 'error' %}bg-red-100 text-red-800 border-l-4 border-red-500{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800 border-l-4 border-yellow-500{% else %}bg-blue-100 text-blue-800 border-l-4 border-blue-500{% endif %}">
                         <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %} text-xl"></i>
                         {{ message }}
                     </div>
@@ -97,32 +97,8 @@
 
         <!-- Page content -->
         {% block content %}{% endblock %}
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-
-
-
-
-
-
-
-
-
-
-
-
-    </div>
-
-    
-=======
     </main>
 
->>>>>>> 476bbb6f39fcb9e2fad8fedb3a6777f68b661d1e
-=======
-    </main>
-
->>>>>>> refs/remotes/origin/main
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-300 py-6 mt-auto">
         <div class="container mx-auto px-6 text-center">
@@ -130,7 +106,7 @@
         </div>
     </footer>
 
-    <!-- Bootstrap JS (only if you still need some Bootstrap components - can remove later) -->
+    <!-- Bootstrap JS (keep only if needed for collapse; can remove later) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     {% block extra_js %}{% endblock %}
