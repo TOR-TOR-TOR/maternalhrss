@@ -78,11 +78,7 @@
 
           <!-- Password -->
           <div class="relative">
-            {% render_field form.password 
-                            class+="peer w-full px-4 py-3.5 pl-11 border border-gray-300 rounded-xl 
-                                    focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200
-                                    placeholder-transparent" 
-                            placeholder="Password" %}
+           
             <label for="{{ form.password.id_for_label }}"
                    class="absolute left-11 top-3.5 text-sm text-gray-500 pointer-events-none transition-all duration-200 
                           peer-focus:-translate-y-7 peer-focus:text-xs peer-focus:text-primary
