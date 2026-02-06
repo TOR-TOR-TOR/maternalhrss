@@ -1,145 +1,88 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
 
-{% block title %}Sign In - MaternaCare Solutions{% endblock %}
-
-{% block extra_css %}
-<style>
-  .login-bg {
-    background: linear-gradient(135deg, #f0fdfa 0%, #e0f7f4 100%);
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(200, 230, 201, 0.15) 0%, transparent 20%),
-      radial-gradient(circle at 90% 80%, rgba(200, 230, 201, 0.12) 0%, transparent 25%);
-    background-size: 150% 150%;
-  }
-</style>
-{% endblock %}
+{% block title %}Login - Maternal Health System{% endblock %}
 
 {% block content %}
 
-<div class="login-bg min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-  <div class="w-full max-w-md">
+<div class="min-h-[calc(100vh-10rem)] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
 
-    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-teal-100/60">
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <!-- Logo / Icon -->
+    <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+      <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    </div>
 
-      <!-- Header -->
-      <div class="px-8 pt-10 pb-6 bg-gradient-to-b from-teal-50/80 to-white text-center">
-        <div class="mx-auto w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-md mb-5">
-          <i class="fas fa-heartbeat text-white text-4xl"></i>
+    <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+      Sign in to your account
+    </h2>
+    <p class="mt-2 text-center text-sm text-gray-600">
+      Maternal Health Record & Reminder System
+    </p>
+  </div>
+
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="bg-white py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-gray-100">
+
+      <!-- Form -->
+      <form method="post" class="space-y-6" novalidate>
+        {% csrf_token %}
+
+        <!-- Username / Email -->
+        <div>
+          <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            Username
+          </label>
+          <div class="mt-1">
+            {{ form.username }}
+            {% if form.username.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.username.errors|join:" " }}</p>
+            {% endif %}
+          </div>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 mb-1">
-          MaternaCare Solutions
-        </h1>
-        <p class="text-sm text-gray-600">
-          Secure Login to Your Maternal Health System
+
+        <!-- Password -->
+        <div>
+          <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <div class="mt-1">
+            {{ form.password }}
+            {% if form.password.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.password.errors|join:" " }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+          <button type="submit"
+                  class="group relative flex w-full justify-center rounded-md border border-transparent bg-emerald-600 px-4 py-3 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors shadow-sm">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+              <svg class="h-5 w-5 text-emerald-500 group-hover:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+            </span>
+            Sign in
+          </button>
+        </div>
+      </form>
+
+      <!-- Footer help text -->
+      <div class="mt-6 text-center text-sm text-gray-500">
+        <p>
+          Having trouble logging in?
+          <br>
+          <span class="font-medium text-gray-700">Contact your facility manager or system administrator.</span>
         </p>
       </div>
 
-      <!-- Form Area -->
-      <div class="px-8 pb-10 pt-2">
-
-        <!-- Messages (shows login errors/success properly) -->
-        {% if messages %}
-          <div class="mb-6 space-y-3">
-            {% for message in messages %}
-              <div class="flex items-center gap-3 p-4 rounded-xl border shadow-sm
-                          {% if 'error' in message.tags %}bg-red-50 text-red-800 border-red-200
-                          {% elif 'success' in message.tags %}bg-green-50 text-green-800 border-green-200
-                          {% elif 'warning' in message.tags %}bg-yellow-50 text-yellow-800 border-yellow-200
-                          {% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
-                <i class="fas {% if 'error' in message.tags or 'warning' in message.tags %}fa-exclamation-circle
-                              {% elif 'success' in message.tags %}fa-check-circle
-                              {% else %}fa-info-circle{% endif %} text-xl flex-shrink-0"></i>
-                <span class="text-sm">{{ message }}</span>
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        <form method="post" novalidate class="space-y-6">
-          {% csrf_token %}
-
-          <!-- Username -->
-          <div class="relative">
-            {% render_field form.username 
-                            class+="peer w-full px-4 py-3.5 pl-11 border border-gray-300 rounded-xl 
-                                    focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200
-                                    placeholder-transparent" 
-                            placeholder=" " %}
-            <label for="{{ form.username.id_for_label }}"
-                   class="absolute left-11 top-3.5 text-sm text-gray-500 pointer-events-none transition-all duration-200 
-                          peer-focus:-translate-y-7 peer-focus:text-xs peer-focus:text-primary
-                          peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5">
-              Email Address
-            </label>
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <i class="fas fa-envelope text-gray-400 text-lg"></i>
-            </div>
-            {% if form.username.errors %}
-              <p class="mt-1.5 text-sm text-red-600">{{ form.username.errors|join:" " }}</p>
-            {% endif %}
-          </div>
-
-          <!-- Password -->
-          <div class="relative">
-            {% render_field form.password 
-                            class+="peer w-full px-4 py-3.5 pl-11 border border-gray-300 rounded-xl 
-                                    focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200
-                                    placeholder-transparent" 
-                            placeholder=" " %}
-            <label for="{{ form.password.id_for_label }}"
-                   class="absolute left-11 top-3.5 text-sm text-gray-500 pointer-events-none transition-all duration-200 
-                          peer-focus:-translate-y-7 peer-focus:text-xs peer-focus:text-primary
-                          peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-3.5">
-              Password
-            </label>
-            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <i class="fas fa-lock text-gray-400 text-lg"></i>
-            </div>
-            {% if form.password.errors %}
-              <p class="mt-1.5 text-sm text-red-600">{{ form.password.errors|join:" " }}</p>
-            {% endif %}
-          </div>
-
-          <!-- Remember & Forgot -->
-          <div class="flex items-center justify-between text-sm">
-            <label class="flex items-center gap-2 text-gray-600 cursor-pointer select-none">
-              <input type="checkbox" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
-              Remember me
-            </label>
-            <a href="#" class="text-primary hover:text-primary-dark hover:underline transition-colors">
-              Forgot Password?
-            </a>
-          </div>
-
-          <!-- Submit -->
-          <button type="submit"
-                  class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3.5 rounded-xl
-                         shadow-lg hover:shadow-xl focus:ring-4 focus:ring-primary/30 focus:outline-none
-                         transition-all duration-200 flex items-center justify-center gap-2 text-base">
-            Sign In →
-          </button>
-        </form>
-
-        <!-- Bottom text -->
-        <div class="mt-8 text-center text-sm text-gray-500">
-          <p>Need an account? <a href="#" class="text-primary hover:underline">Contact your administrator</a>.</p>
-        </div>
-
-      </div>
     </div>
-
-    <!-- Footer links -->
-    <div class="mt-8 text-center text-xs text-gray-500 space-x-4">
-      <a href="#" class="hover:text-gray-700 transition-colors">Privacy Policy</a>
-      <span>|</span>
-      <a href="#" class="hover:text-gray-700 transition-colors">Terms of Service</a>
-      <span>|</span>
-      <a href="#" class="hover:text-gray-700 transition-colors">Help</a>
-    </div>
-
   </div>
+
 </div>
 
 {% endblock %}
