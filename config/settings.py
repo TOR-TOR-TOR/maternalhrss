@@ -42,8 +42,7 @@ INSTALLED_APPS = [
     'apps.immunization',
     'apps.reminders',
     'apps.delivery',
-#third party apps
-    'widget_tweaks',
+
 ]
 
 # Custom user model
@@ -131,14 +130,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+<<<<<<< HEAD
+STATIC_URL = 'static/'
+
+
+=======
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static_src",           # ← source files (optional, but nice)
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"     # ← collectstatic destination
+>>>>>>> 822ebdd4aaac68636908f7cc71f0a7c709364664
 
+<<<<<<< HEAD
+
+
+
+=======
 # Where Django looks for static files during development
+>>>>>>> 822ebdd4aaac68636908f7cc71f0a7c709364664
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
