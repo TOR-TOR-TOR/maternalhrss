@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'apps.immunization',
     'apps.reminders',
     'apps.delivery',
+#third party apps
+    'widget_tweaks',
 ]
 
 # Custom user model
