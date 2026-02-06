@@ -44,8 +44,14 @@
         {% if messages %}
           <div class="mb-6 space-y-3">
             {% for message in messages %}
-              <div class="flex items-center gap-3 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-green-50 text-green-800 border border-green-200{% endif %}">
-                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-xl flex-shrink-0"></i>
+              <div class="flex items-center gap-3 p-4 rounded-xl border shadow-sm
+                          {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-200
+                          {% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-200
+                          {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border-yellow-200
+                          {% else %}bg-blue-50 text-blue-800 border-blue-200{% endif %}">
+                <i class="fas {% if message.tags == 'error' or message.tags == 'warning' %}fa-exclamation-circle
+                              {% elif message.tags == 'success' %}fa-check-circle
+                              {% else %}fa-info-circle{% endif %} text-xl flex-shrink-0"></i>
                 <span class="text-sm">{{ message }}</span>
               </div>
             {% endfor %}
@@ -78,7 +84,11 @@
 
           <!-- Password -->
           <div class="relative">
-           
+            {% render_field form.password 
+                            class+="peer w-full px-4 py-3.5 pl-11 border border-gray-300 rounded-xl 
+                                    focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200
+                                    placeholder-transparent" 
+                            placeholder="Password" %}
             <label for="{{ form.password.id_for_label }}"
                    class="absolute left-11 top-3.5 text-sm text-gray-500 pointer-events-none transition-all duration-200 
                           peer-focus:-translate-y-7 peer-focus:text-xs peer-focus:text-primary
@@ -93,7 +103,7 @@
             {% endif %}
           </div>
 
-          <!-- Remember & Forgot -->
+          <!-- Remember me & Forgot Password -->
           <div class="flex items-center justify-between text-sm">
             <label class="flex items-center gap-2 text-gray-600 cursor-pointer select-none">
               <input type="checkbox" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary">
@@ -104,7 +114,7 @@
             </a>
           </div>
 
-          <!-- Submit -->
+          <!-- Submit Button -->
           <button type="submit"
                   class="w-full bg-primary hover:bg-primary-dark text-white font-medium py-3.5 rounded-xl
                          shadow-lg hover:shadow-xl focus:ring-4 focus:ring-primary/30 focus:outline-none
