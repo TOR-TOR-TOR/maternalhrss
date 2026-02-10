@@ -1,63 +1,81 @@
 {% extends 'base.html' %}
 {% load widget_tweaks static %}
 
-{% block title %}Login - Maternal Health System{% endblock %}
+{% block title %}Sign In - Maternal Health System{% endblock %}
 
 {% block content %}
 
-<div class="min-h-[80vh] flex items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md">
+<div class="min-h-[calc(100vh-120px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-md space-y-8">
 
-    <!-- Test box - remove later -->
-    <div class="bg-green-700 text-white p-8 rounded-2xl text-center text-2xl font-bold shadow-2xl mb-10">
-      Tailwind is working 🎉
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-      <div class="text-center mb-8">
-        <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-          <i class="fas fa-heartbeat text-4xl text-green-700"></i>
-        </div>
-        <h1 class="text-3xl font-bold text-gray-900">Maternal Health System</h1>
-        <p class="text-gray-600 mt-2">Sign in to continue</p>
+    <!-- Header -->
+    <div class="text-center">
+      <div class="mx-auto h-14 w-14 rounded-full bg-emerald-100 flex items-center justify-center">
+        <i class="fas fa-heartbeat text-3xl text-emerald-700"></i>
       </div>
-
-      <form method="post" class="space-y-6">
-        {% csrf_token %}
-
-        <!-- Username -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
-            Username
-          </label>
-          {% render_field form.username class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-sm" placeholder="Enter username" autofocus=true %}
-          {% if form.username.errors %}
-            <p class="mt-1.5 text-sm text-red-600">{{ form.username.errors|join:" • " }}</p>
-          {% endif %}
-        </div>
-
-        <!-- Password -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1.5">
-            Password
-          </label>
-          {% render_field form.password class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition shadow-sm" placeholder="••••••••" %}
-          {% if form.password.errors %}
-            <p class="mt-1.5 text-sm text-red-600">{{ form.password.errors|join:" • " }}</p>
-          {% endif %}
-        </div>
-
-        <button type="submit"
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3.5 px-6 rounded-lg transition duration-200 flex items-center justify-center shadow-md">
-          <i class="fas fa-sign-in-alt mr-2"></i>
-          Sign In
-        </button>
-      </form>
-
-      <p class="text-center text-sm text-gray-600 mt-6">
-        Forgot password? Contact your facility manager.
+      <h2 class="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+        Maternal Health System
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Sign in to manage antenatal care & reminders
       </p>
     </div>
+
+    <!-- Form -->
+    <form method="post" class="mt-8 space-y-6" novalidate>
+      {% csrf_token %}
+
+      <!-- Username -->
+      <div>
+        <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+          Username
+        </label>
+        <div class="mt-1">
+          {% render_field form.username 
+              class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2.5 px-3" 
+              placeholder="Enter your username" 
+              autofocus=true 
+          %}
+        </div>
+        {% if form.username.errors %}
+          <p class="mt-1.5 text-sm text-red-600">{{ form.username.errors|join:" • " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-gray-700">
+          Password
+        </label>
+        <div class="mt-1">
+          {% render_field form.password 
+              class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm py-2.5 px-3" 
+              placeholder="••••••••" 
+          %}
+        </div>
+        {% if form.password.errors %}
+          <p class="mt-1.5 text-sm text-red-600">{{ form.password.errors|join:" • " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Submit -->
+      <div>
+        <button type="submit"
+                class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200 shadow-md">
+          <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+            <i class="fas fa-sign-in-alt text-emerald-400 group-hover:text-emerald-300"></i>
+          </span>
+          Sign in
+        </button>
+      </div>
+
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-500">
+      Forgotten your password? 
+      <span class="text-gray-700 font-medium">Contact your facility manager</span>
+    </p>
+
   </div>
 </div>
 
