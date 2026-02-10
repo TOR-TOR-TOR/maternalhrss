@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add custom styles below if you want */
+/* Example:
+.btn-primary {
+  @apply bg-green-700 text-white font-medium py-3 px-6 rounded-lg hover:bg-green-800 transition;
+}
+*/
