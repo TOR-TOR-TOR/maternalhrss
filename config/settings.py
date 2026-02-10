@@ -137,9 +137,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [
-    BASE_DIR / "static_src",           # ← source files (optional, but nice)
+    BASE_DIR / "static",           # ← source files (optional, but nice)
 ]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"     # ← collectstatic destination
 
 
