@@ -4,8 +4,8 @@
   "private": true,
   "description": "Tailwind CSS build setup for Maternal Health Record & Reminder System (Django)",
   "scripts": {
-    "build": "npx tailwindcss -i ./static_src/css/input.css -o ./static/css/output.css --minify",
-    "watch": "npx tailwindcss -i ./static_src/css/input.css -o ./static/css/output.css --watch",
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch",
     "dev": "npm run watch"
   },
   "devDependencies": {
