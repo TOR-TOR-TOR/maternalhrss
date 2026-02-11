@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static widget_tweaks %}
+
+{% block title %}MOH Dashboard - Maternal Health System{% endblock %}
+
+{% block content %}
+
+<div class="space-y-8">
+
+  <!-- Page Header -->
+  {% include "components/page-header.html" with 
+    title="MOH National Dashboard" 
+    subtitle="County & Facility Overview • Updated " actions=actions_html 
+  %}
+
+  <!-- Quick Stats Row -->
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+    {% include "components/stat-card.html" with 
+      label="Total Registered Mothers" 
+      value="12,847" 
+      icon="users" 
+      color="emerald" 
+      trend="+18% this month" 
+      trend_up=True 
+    %}
+
+    {% include "components/stat-card.html" with 
+      label="ANC Visits This Month" 
+      value="4,392" 
+      icon="calendar-check" 
+      color="emerald" 
+      trend="+9%" 
+      trend_up=True 
+    %}
+
+    {% include "components/stat-card.html" with 
+      label="Overdue Visits" 
+      value="1,284" 
+      icon="clock" 
+      color="red" 
+      trend="+5%" 
+      trend_up=False 
+    %}
+
+    {% include "components/stat-card.html" with 
+      label="High-Risk Pregnancies" 
+      value="673" 
+      icon="exclamation-triangle" 
+      color="orange" 
+      trend="-3%" 
+      trend_up=True 
+    %}
+
+  </div>
+
+  <!-- Alerts / Notifications -->
+  {% if messages %}
+    <div class="space-y-4">
+      {% for message in messages %}
+        {% include "components/alert.html" with 
+          type=message.tags 
+          message=message 
+          dismissible=True 
+        %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Two-column layout: Key metrics + Recent activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left & Middle: Key performance indicators -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Coverage by County (simple table or cards) -->
+      {% include "components/card.html" with title="ANC Coverage by County (Last 30 Days)" %}
+        <div class="divide-y divide-gray-200">
+          <div class="flex items-center justify-between py-4">
+            <div class="font-medium">Nairobi</div>
+            <div class="flex items-center gap-6">
+              <div class="text-right">
+                <div class="text-sm text-gray-500">Coverage</div>
+                <div class="font-semibold">87%</div>
+              </div>
+              {% include "components/status-badge.html" with status="completed" %}
+            </div>
+          </div>
+          <!-- more rows... -->
+        </div>
+      {% endinclude %}
+
+      <!-- Recent Overdue Visits -->
+      {% include "components/table-container.html" with title="Top Overdue Facilities" %}
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">County</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Visits</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <!-- Example rows - replace with real loop -->
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Kenyatta National Hospital</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Nairobi</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% include "components/status-badge.html" with status="overdue" label="214" %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
+            </tr>
+            <!-- more rows -->
+          </tbody>
+        </table>
+      {% endinclude %}
+
+    </div>
+
+    <!-- Right column: Quick stats & alerts -->
+    <div class="space-y-6">
+
+      <!-- High Risk Pregnancies -->
+      {% include "components/card.html" with title="High-Risk Pregnancies" %}
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <div class="text-3xl font-bold text-orange-600">673</div>
+            <div class="text-sm text-gray-500">Active cases</div>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-green-600">
+            <i class="fas fa-arrow-down"></i>
+            <span>4% lower than last month</span>
+          </div>
+        </div>
+      {% endinclude %}
+
+      <!-- Recent Activity / Notifications -->
+      {% include "components/card.html" with title="Recent Activity" %}
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">New high-risk case reported in Kisumu</span>
+            <span class="text-gray-500">12 min ago</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Coverage alert: Mandera below 60%</span>
+            <span class="text-gray-500">1 hour ago</span>
+          </div>
+          <!-- more items -->
+        </div>
+      {% endinclude %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
