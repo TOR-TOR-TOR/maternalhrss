@@ -68,14 +68,14 @@
   <!-- Main Content Grid -->
   <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 
-    <!-- Left + Center: Main Tables & Coverage -->
+    <!-- Left + Center Column -->
     <div class="lg:col-span-2 space-y-8">
 
       <!-- ANC Coverage by County -->
       {% include "components/card.html" with title="ANC Coverage by County (Last 30 Days)" %}
 
         <div class="divide-y divide-gray-100">
-          {% for county in counties %}  <!-- ← example loop -->
+          {% for county in counties %}
             <div class="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
               <div class="font-medium text-gray-900">{{ county.name }}</div>
               <div class="flex items-center gap-6">
@@ -147,7 +147,7 @@
 
     </div>
 
-    <!-- Right Column: Quick Insights -->
+    <!-- Right Column -->
     <div class="space-y-8">
 
       <!-- High-Risk Pregnancies -->
@@ -156,7 +156,7 @@
         <div class="space-y-6">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-4xl font-bold text-orange-600">673</div>
+              <div class="text-4xl font-bold text-orange-600">{{ high_risk_count|default:"673" }}</div>
               <div class="mt-1 text-sm text-gray-600">Active high-risk cases</div>
             </div>
             <div class="rounded-full bg-orange-100 p-4">
