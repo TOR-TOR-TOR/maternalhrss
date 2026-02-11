@@ -1,24 +1,31 @@
 {% extends 'base.html' %}
 {% load static widget_tweaks %}
 
-{% block title %}MOH Dashboard - Maternal Health System{% endblock %}
+{% block title %}MOH National Dashboard - Maternal Health System{% endblock %}
 
 {% block content %}
 
-<div class="space-y-8">
+<div class="space-y-10">
 
-  <!-- Page Header -->
-  {% include "components/page-header.html" with 
-    title="MOH National Dashboard" 
-    subtitle="County & Facility Overview • Updated " actions=actions_html 
-  %}
+  <!-- Page Header + Quick Filters -->
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    {% include "components/page-header.html" with 
+      title="MOH National Dashboard" 
+      subtitle="Real-time Maternal Health Overview • Last updated: now" 
+    %}
 
-  <!-- Quick Stats Row -->
+    {% include "components/filter-bar.html" with 
+      search_form=search_form 
+      status_choices=status_choices 
+    %}
+  </div>
+
+  <!-- KPI Stats Grid -->
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
     {% include "components/stat-card.html" with 
       label="Total Registered Mothers" 
-      value="12,847" 
+      value=total_mothers|default:"12,847" 
       icon="users" 
       color="emerald" 
       trend="+18% this month" 
@@ -26,8 +33,8 @@
     %}
 
     {% include "components/stat-card.html" with 
-      label="ANC Visits This Month" 
-      value="4,392" 
+      label="ANC Visits (Last 30 Days)" 
+      value=anc_visits_this_month|default:"4,392" 
       icon="calendar-check" 
       color="emerald" 
       trend="+9%" 
@@ -35,8 +42,8 @@
     %}
 
     {% include "components/stat-card.html" with 
-      label="Overdue Visits" 
-      value="1,284" 
+      label="Overdue ANC Visits" 
+      value=overdue_visits|default:"1,284" 
       icon="clock" 
       color="red" 
       trend="+5%" 
@@ -45,7 +52,7 @@
 
     {% include "components/stat-card.html" with 
       label="High-Risk Pregnancies" 
-      value="673" 
+      value=high_risk_cases|default:"673" 
       icon="exclamation-triangle" 
       color="orange" 
       trend="-3%" 
@@ -54,7 +61,7 @@
 
   </div>
 
-  <!-- Alerts / Notifications -->
+  <!-- Messages -->
   {% if messages %}
     <div class="space-y-4">
       {% for message in messages %}
@@ -67,87 +74,111 @@
     </div>
   {% endif %}
 
-  <!-- Two-column layout: Key metrics + Recent activity -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 
-    <!-- Left & Middle: Key performance indicators -->
-    <div class="lg:col-span-2 space-y-6">
+    <!-- Left + Center Column: Main Tables & Coverage -->
+    <div class="lg:col-span-2 space-y-8">
 
-      <!-- Coverage by County (simple table or cards) -->
+      <!-- ANC Coverage by County -->
       {% include "components/card.html" with title="ANC Coverage by County (Last 30 Days)" %}
-        <div class="divide-y divide-gray-200">
-          <div class="flex items-center justify-between py-4">
-            <div class="font-medium">Nairobi</div>
-            <div class="flex items-center gap-6">
-              <div class="text-right">
-                <div class="text-sm text-gray-500">Coverage</div>
-                <div class="font-semibold">87%</div>
+        {% block card_content %}
+          <div class="divide-y divide-gray-100">
+            <!-- Example row - replace with {% for county in counties %} -->
+            <div class="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
+              <div class="font-medium text-gray-900">Nairobi County</div>
+              <div class="flex items-center gap-6">
+                <div class="text-right">
+                  <div class="text-sm text-gray-500">Coverage Rate</div>
+                  <div class="text-lg font-semibold text-emerald-600">87%</div>
+                </div>
+                {% include "components/status-badge.html" with status="completed" label="On Target" %}
               </div>
-              {% include "components/status-badge.html" with status="completed" %}
             </div>
+            <!-- Add more rows dynamically -->
           </div>
-          <!-- more rows... -->
-        </div>
+        {% endblock %}
       {% endinclude %}
 
-      <!-- Recent Overdue Visits -->
-      {% include "components/table-container.html" with title="Top Overdue Facilities" %}
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">County</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue Visits</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Example rows - replace with real loop -->
-            <tr class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Kenyatta National Hospital</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Nairobi</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                {% include "components/status-badge.html" with status="overdue" label="214" %}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">2 hours ago</td>
-            </tr>
-            <!-- more rows -->
-          </tbody>
-        </table>
+      <!-- Top Overdue Facilities Table -->
+      {% include "components/table-container.html" with 
+        title="Facilities with Highest Overdue Visits" 
+        empty=not overdue_facilities 
+        empty_message="No overdue facilities reported in the last 7 days" 
+      %}
+        {% block table_content %}
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Facility</th>
+                <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">County</th>
+                <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Overdue Visits</th>
+                <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Last Report</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+              <!-- Placeholder row - replace with real loop -->
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">Kenyatta National Hospital</td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">Nairobi</td>
+                <td class="whitespace-nowrap px-6 py-4">
+                  {% include "components/status-badge.html" with status="overdue" label="214" %}
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">2 hours ago</td>
+              </tr>
+              <!-- Repeat for real data -->
+            </tbody>
+          </table>
+        {% endblock %}
       {% endinclude %}
 
     </div>
 
-    <!-- Right column: Quick stats & alerts -->
-    <div class="space-y-6">
+    <!-- Right Sidebar: Quick Insights -->
+    <div class="space-y-8">
 
-      <!-- High Risk Pregnancies -->
-      {% include "components/card.html" with title="High-Risk Pregnancies" %}
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-            <div class="text-3xl font-bold text-orange-600">673</div>
-            <div class="text-sm text-gray-500">Active cases</div>
+      <!-- High-Risk Pregnancies Summary -->
+      {% include "components/card.html" with title="High-Risk Pregnancies Overview" %}
+        {% block card_content %}
+          <div class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-4xl font-bold text-orange-600">{{ high_risk_count|default:"673" }}</div>
+                <div class="text-sm text-gray-600 mt-1">Active high-risk cases</div>
+              </div>
+              <div class="rounded-full bg-orange-100 p-4">
+                <i class="fas fa-exclamation-triangle text-3xl text-orange-600"></i>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-green-600">
+              <i class="fas fa-arrow-down"></i>
+              <span>4% decrease compared to last month</span>
+            </div>
           </div>
-          <div class="flex items-center gap-2 text-sm text-green-600">
-            <i class="fas fa-arrow-down"></i>
-            <span>4% lower than last month</span>
-          </div>
-        </div>
+        {% endblock %}
       {% endinclude %}
 
-      <!-- Recent Activity / Notifications -->
-      {% include "components/card.html" with title="Recent Activity" %}
-        <div class="space-y-3 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-600">New high-risk case reported in Kisumu</span>
-            <span class="text-gray-500">12 min ago</span>
+      <!-- Recent Alerts / Activity Feed -->
+      {% include "components/card.html" with title="Recent Alerts & Activity" %}
+        {% block card_content %}
+          <div class="space-y-4 text-sm">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium text-gray-900">New high-risk case registered</p>
+                <p class="text-gray-600">Kisumu County - Facility XYZ</p>
+              </div>
+              <span class="text-xs text-gray-500">12 min ago</span>
+            </div>
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium text-gray-900">Coverage alert</p>
+                <p class="text-gray-600">Mandera County below 60% target</p>
+              </div>
+              <span class="text-xs text-gray-500">1 hour ago</span>
+            </div>
+            <!-- Add more dynamically -->
           </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Coverage alert: Mandera below 60%</span>
-            <span class="text-gray-500">1 hour ago</span>
-          </div>
-          <!-- more items -->
-        </div>
+        {% endblock %}
       {% endinclude %}
 
     </div>

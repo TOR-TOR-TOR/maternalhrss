@@ -1,26 +1,82 @@
 {% comment %}
-Responsive wrapper for tables + loading & empty states
+Responsive, card-like table wrapper with optional title, empty state, loading state, and actions.
 
-Usage:
-{% include "components/table-container.html" with title="Today's ANC Visits" empty=not visits %}
-  <table class="min-w-full divide-y divide-gray-200">
-    ...
-  </table>
+Key improvements:
+- Uses {% block table_content %} so you can put real content inside
+- No {% endinclude %} — include is self-closing
+- Added optional loading, actions slot, and better empty state integration
+- Consistent padding, shadow, hover states
+- Mobile-friendly overflow-x-auto
+
+Basic usage:
+{% include "components/table-container.html" with title="Today's ANC Visits" empty=not visits has_actions=True %}
+  {% block table_content %}
+    <table class="min-w-full divide-y divide-gray-200">
+      ...
+    </table>
+  {% endblock %}
+{% endinclude %}
+
+With loading:
+{% include "components/table-container.html" with title="Overdue Visits" loading=True %}
+{% endinclude %}
+
+With custom empty message:
+{% include "components/table-container.html" with title="High-Risk Mothers" empty=True empty_message="No high-risk cases today" %}
 {% endinclude %}
 {% endcomment %}
 
-<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-  {% if title %}
-    <div class="border-b border-gray-200 px-6 py-4">
-      <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+  <!-- Header with title + optional actions -->
+  {% if title or actions %}
+    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 sm:px-6">
+      <h3 class="text-lg font-semibold text-gray-900">
+        {{ title|default:"Data Table" }}
+      </h3>
+
+      {% if actions %}
+        <div class="flex items-center gap-3">
+          {{ actions|safe }}
+        </div>
+      {% endif %}
     </div>
   {% endif %}
 
+  <!-- Main content area -->
   <div class="overflow-x-auto">
-    {% if empty %}
-      {% include "components/empty-state.html" with message="No records found" %}
+    {% if loading %}
+      <div class="p-12 text-center">
+        <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
+        <p class="mt-4 text-sm text-gray-500">Loading data...</p>
+      </div>
+
+    {% elif empty %}
+      <div class="p-12 text-center">
+        {% include "components/empty-state.html" with 
+          message=empty_message|default:"No records found" 
+          icon=empty_icon|default:"folder-open" 
+          action_text=action_text 
+          action_url=action_url 
+        %}
+      </div>
+
     {% else %}
-      {% block table_content %}{% endblock %}
+      <!-- Real table content goes here via block -->
+      {% block table_content %}
+        <!-- Fallback if block not overridden -->
+        <div class="p-12 text-center text-gray-500">
+          No table content provided
+        </div>
+      {% endblock %}
     {% endif %}
   </div>
+
+  <!-- Optional footer (e.g. pagination, summary) -->
+  {% block table_footer %}
+    {% if show_footer %}
+      <div class="border-t border-gray-200 px-6 py-4 text-sm text-gray-500">
+        {% block footer_content %}{% endblock %}
+      </div>
+    {% endif %}
+  {% endblock %}
 </div>
