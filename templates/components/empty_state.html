@@ -1,0 +1,30 @@
+{% comment %}
+Nice empty state illustration/message
+
+Usage:
+{% include "components/empty-state.html" with message="No ANC visits scheduled today" icon="calendar-xmark" %}
+{% endcomment %}
+
+<div class="py-12 px-6 text-center">
+  {% if icon %}
+    <div class="mx-auto h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+      <i class="fas fa-{{ icon }} text-3xl text-gray-400"></i>
+    </div>
+  {% endif %}
+
+  <h3 class="text-lg font-medium text-gray-900">
+    {{ title|default:"No data available" }}
+  </h3>
+  <p class="mt-2 text-sm text-gray-500">
+    {{ message|default:"There are no records matching your criteria at the moment." }}
+  </p>
+
+  {% if action_text and action_url %}
+    <div class="mt-6">
+      <a href="{{ action_url }}" class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+        <i class="fas fa-{{ action_icon|default:'plus' }}"></i>
+        {{ action_text }}
+      </a>
+    </div>
+  {% endif %}
+</div>

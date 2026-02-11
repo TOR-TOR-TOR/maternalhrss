@@ -1,0 +1,26 @@
+{% comment %}
+Page header with title, optional subtitle and action buttons on the right.
+
+Usage examples:
+{% include "components/page-header.html" with title="Today's ANC Visits" %}
+{% include "components/page-header.html" with title="Mothers List" subtitle="Showing 48 records" actions=actions_html %}
+{% endcomment %}
+
+<div class="mb-6 md:mb-8">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+        {{ title }}
+      </h1>
+      {% if subtitle %}
+        <p class="mt-1.5 text-gray-600">{{ subtitle }}</p>
+      {% endif %}
+    </div>
+
+    {% if actions %}
+      <div class="flex flex-wrap items-center gap-3">
+        {{ actions|safe }}
+      </div>
+    {% endif %}
+  </div>
+</div>
