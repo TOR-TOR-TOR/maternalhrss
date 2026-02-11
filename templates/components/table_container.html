@@ -1,39 +1,24 @@
 {% comment %}
-Responsive, card-like table wrapper with optional title, empty state, loading state, and actions.
+Responsive table container with title, optional actions, loading/empty states, and footer slot.
 
-Key improvements:
-- Uses {% block table_content %} so you can put real content inside
-- No {% endinclude %} — include is self-closing
-- Added optional loading, actions slot, and better empty state integration
-- Consistent padding, shadow, hover states
-- Mobile-friendly overflow-x-auto
-
-Basic usage:
-{% include "components/table-container.html" with title="Today's ANC Visits" empty=not visits has_actions=True %}
+Usage example:
+{% include "components/table_container.html" with title="Overdue Facilities" empty=not facilities loading=is_loading %}
   {% block table_content %}
     <table class="min-w-full divide-y divide-gray-200">
-      ...
+      <!-- your table here -->
     </table>
   {% endblock %}
-{% endinclude %}
 
-With loading:
-{% include "components/table-container.html" with title="Overdue Visits" loading=True %}
-{% endinclude %}
-
-With custom empty message:
-{% include "components/table-container.html" with title="High-Risk Mothers" empty=True empty_message="No high-risk cases today" %}
-{% endinclude %}
+  {% block table_footer %}
+    <!-- optional pagination or summary -->
+  {% endblock %}
 {% endcomment %}
 
-<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-  <!-- Header with title + optional actions -->
+<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+  <!-- Header -->
   {% if title or actions %}
-    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 sm:px-6">
-      <h3 class="text-lg font-semibold text-gray-900">
-        {{ title|default:"Data Table" }}
-      </h3>
-
+    <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6">
+      <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
       {% if actions %}
         <div class="flex items-center gap-3">
           {{ actions|safe }}
@@ -42,41 +27,37 @@ With custom empty message:
     </div>
   {% endif %}
 
-  <!-- Main content area -->
+  <!-- Content Area -->
   <div class="overflow-x-auto">
     {% if loading %}
-      <div class="p-12 text-center">
-        <div class="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-600"></div>
-        <p class="mt-4 text-sm text-gray-500">Loading data...</p>
+      <div class="flex min-h-[200px] items-center justify-center p-8 text-gray-500">
+        <div class="mr-3 h-6 w-6 animate-spin rounded-full border-4 border-t-emerald-600 border-gray-200"></div>
+        Loading data...
       </div>
 
     {% elif empty %}
-      <div class="p-12 text-center">
-        {% include "components/empty-state.html" with 
-          message=empty_message|default:"No records found" 
-          icon=empty_icon|default:"folder-open" 
-          action_text=action_text 
-          action_url=action_url 
-        %}
-      </div>
+      {% include "components/empty-state.html" with 
+        message=empty_message|default:"No records found" 
+        icon=empty_icon|default:"search" 
+        action_text=action_text 
+        action_url=action_url 
+      %}
 
     {% else %}
-      <!-- Real table content goes here via block -->
       {% block table_content %}
-        <!-- Fallback if block not overridden -->
-        <div class="p-12 text-center text-gray-500">
-          No table content provided
-        </div>
+        <!-- Fallback if no content provided -->
+        <div class="p-8 text-center text-gray-500">No table content provided</div>
       {% endblock %}
     {% endif %}
   </div>
 
-  <!-- Optional footer (e.g. pagination, summary) -->
-  {% block table_footer %}
-    {% if show_footer %}
-      <div class="border-t border-gray-200 px-6 py-4 text-sm text-gray-500">
-        {% block footer_content %}{% endblock %}
-      </div>
-    {% endif %}
-  {% endblock %}
+  <!-- Footer -->
+  {% if show_footer or block.table_footer %}
+    <div class="border-t border-gray-200 px-4 py-3 sm:px-6 text-sm text-gray-600">
+      {% block table_footer %}
+        <!-- Default footer if needed -->
+        Showing 1 to 10 of 50 entries
+      {% endblock %}
+    </div>
+  {% endif %}
 </div>
