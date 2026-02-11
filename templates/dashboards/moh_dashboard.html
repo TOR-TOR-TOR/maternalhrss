@@ -10,45 +10,45 @@
   <!-- Page Header -->
   {% include "components/page-header.html" with 
     title="MOH National Dashboard" 
-    subtitle="County & Facility Overview • Updated just now" 
+    subtitle="County & Facility Overview • Updated {{ last_updated|date:"H:i" }}" 
   %}
 
   <!-- Quick Stats Row -->
   <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
     {% include "components/stat-card.html" with 
       label="Total Registered Mothers" 
-      value="12,847" 
+      value=total_mothers|default:"12,847" 
       icon="users" 
       color="emerald" 
-      trend="+18% this month" 
-      trend_up=True 
+      trend= mothers_trend 
+      trend_up=mothers_trend_up 
     %}
 
     {% include "components/stat-card.html" with 
       label="ANC Visits This Month" 
-      value="4,392" 
+      value=anc_visits_this_month|default:"4,392" 
       icon="calendar-check" 
       color="emerald" 
-      trend="+9%" 
-      trend_up=True 
+      trend=anc_trend 
+      trend_up=anc_trend_up 
     %}
 
     {% include "components/stat-card.html" with 
       label="Overdue Visits" 
-      value="1,284" 
+      value=overdue_visits|default:"1,284" 
       icon="clock" 
       color="red" 
-      trend="+5%" 
-      trend_up=False 
+      trend=overdue_trend 
+      trend_up=overdue_trend_up 
     %}
 
     {% include "components/stat-card.html" with 
       label="High-Risk Pregnancies" 
-      value="673" 
+      value=high_risk_pregnancies|default:"673" 
       icon="exclamation-triangle" 
       color="orange" 
-      trend="-3%" 
-      trend_up=True 
+      trend=high_risk_trend 
+      trend_up=high_risk_trend_up 
     %}
   </div>
 
@@ -76,9 +76,9 @@
 
         <div class="divide-y divide-gray-100">
           {% for county in counties %}
-            <div class="flex items-center justify-between py-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-center justify-between py-4 px-4 hover:bg-gray-50 transition-colors sm:px-6">
               <div class="font-medium text-gray-900">{{ county.name }}</div>
-              <div class="flex items-center gap-6">
+              <div class="flex items-center gap-4 sm:gap-6">
                 <div class="text-right">
                   <div class="text-sm text-gray-500">Coverage Rate</div>
                   <div class="text-lg font-semibold text-emerald-600">{{ county.coverage }}%</div>
@@ -108,25 +108,25 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Facility</th>
-            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">County</th>
-            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Overdue Visits</th>
-            <th scope="col" class="px-6 py-3.5 text-left text-sm font-semibold text-gray-900">Last Report</th>
+            <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 sm:px-6">Facility</th>
+            <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 sm:px-6">County</th>
+            <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 sm:px-6">Overdue Visits</th>
+            <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 sm:px-6">Last Report</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
           {% for facility in overdue_facilities %}
             <tr class="hover:bg-gray-50 transition-colors">
-              <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+              <td class="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-900 sm:px-6">
                 {{ facility.name }}
               </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+              <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600 sm:px-6">
                 {{ facility.county }}
               </td>
-              <td class="whitespace-nowrap px-6 py-4">
+              <td class="whitespace-nowrap px-4 py-4 sm:px-6">
                 {% include "components/status-badge.html" with status="overdue" label=facility.overdue_count %}
               </td>
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+              <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500 sm:px-6">
                 {{ facility.last_updated|timesince }} ago
               </td>
             </tr>
