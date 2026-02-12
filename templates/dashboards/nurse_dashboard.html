@@ -1,24 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Nurse Dashboard Test{% endblock %}
+{% block title %}Nurse Dashboard - Maternal HRSS{% endblock %}
 
 {% block content %}
 
-<div class="p-8 max-w-7xl mx-auto">
+<!-- 
+  File: templates/dashboards/nurse_dashboard.html
+  Purpose: Main nurse dashboard view
+  Current state: Page header with dynamic date + placeholder
+-->
 
-  <h1 class="text-3xl font-bold text-gray-900">Nurse Dashboard</h1>
-  <p class="mt-2 text-gray-600">If this text is styled and not raw, parsing works.</p>
+<div class="space-y-8 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
 
-  <!-- Test simple variable -->
-  <p class="mt-4">Current date: {{ 'now'|date:"l, d F Y" }}</p>
+  <!-- Real Page Header with fixed date -->
+  {% include "components/page-header.html" with 
+    title="Nurse Dashboard" 
+    subtitle="Your facility overview for {{ 'now'|date:'l, d F Y' }}" 
+  %}
 
-  <!-- Test if block content is parsed -->
-  {% if user.is_authenticated %}
-    <p class="mt-4 text-green-600 font-medium">You are logged in as {{ user.get_full_name }}</p>
-  {% else %}
-    <p class="mt-4 text-red-600">Not logged in</p>
-  {% endif %}
+  <!-- Placeholder for next sections (stats coming soon) -->
+  <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm min-h-[300px] flex items-center justify-center">
+    <p class="text-gray-500 text-lg">
+      Building stat cards, today's visits & quick actions...
+    </p>
+  </div>
 
 </div>
 
