@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.delivery',
 
 #3rd party apps
+   'django_extensions',
    'widget_tweaks',
 ]
 
