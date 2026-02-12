@@ -235,11 +235,12 @@ def nurse_dashboard(request):
         pregnancies__status='ACTIVE'
     ).distinct().count()
     
-    # Today's scheduled visits
+    # Today's scheduled visits (using scheduled_date, NOT visit_date)
     todays_visits = ANCVisit.objects.filter(
         pregnancy__mother__facility=facility,
-        visit_date=today
-    ).select_related('pregnancy__mother', 'pregnancy').order_by('visit_date')
+        scheduled_date=today,
+        attended=False
+    ).select_related('pregnancy__mother', 'pregnancy').order_by('scheduled_date')
     
     # High risk cases
     high_risk_count = Pregnancy.objects.filter(
@@ -249,17 +250,21 @@ def nurse_dashboard(request):
     ).count()
     
     # Pending follow-ups (visits overdue by 7+ days)
+    # Using scheduled_date, NOT visit_date
     pending_followups = ANCVisit.objects.filter(
         pregnancy__mother__facility=facility,
-        visit_date__lt=today - timedelta(days=7),
-        status='SCHEDULED'
+        scheduled_date__lt=today - timedelta(days=7),
+        attended=False,
+        missed=False
     ).count()
     
-    # Recent activity (last 5 visits)
+    # Recent activity (last 5 completed visits)
+    # Using actual_visit_date for ordering, NOT visit_date
     recent_visits = ANCVisit.objects.filter(
         pregnancy__mother__facility=facility,
-        status='COMPLETED'
-    ).select_related('pregnancy__mother').order_by('-visit_date')[:5]
+        attended=True,
+        actual_visit_date__isnull=False
+    ).select_related('pregnancy__mother', 'pregnancy').order_by('-actual_visit_date')[:5]
 
     context = {
         'page_title': 'Nurse Dashboard',
@@ -275,7 +280,6 @@ def nurse_dashboard(request):
         'recent_visits': recent_visits,
     }
     return render(request, 'dashboards/nurse_dashboard.html', context)
-
 
   
 @login_required
