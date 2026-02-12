@@ -7,12 +7,7 @@
 
 <div class="space-y-8 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
 
-{% capture current_date %}{{ "now" | date: "%A, %d %B %Y" }}{% endcapture %}
-
-{% include components/page-header.html 
-   title="Nurse Dashboard" 
-   subtitle="Your facility overview for " | append: current_date 
-%}
+  {% include 'components/page-header.html' with title="Nurse Dashboard" subtitle=today_formatted %}
 
   <!-- Confirmation -->
   <p class="mt-8 text-green-600 font-medium text-center">
