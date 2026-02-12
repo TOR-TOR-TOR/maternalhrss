@@ -22,96 +22,173 @@
     
   </div>
 
-  <!-- Today's Schedule -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Today's Schedule</h2>
-      <p class="text-sm text-gray-600 mt-1">{{ stats.todays_visits_count }} appointment{{ stats.todays_visits_count|pluralize }} scheduled</p>
-    </div>
+  <!-- Two Column Layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     
-    <div class="overflow-x-auto">
-      {% if todays_visits %}
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Mother</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Week</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Visit Type</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Time</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Risk</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            {% for visit in todays_visits %}
-            <tr class="hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.get_full_name }}</div>
-                <div class="text-sm text-gray-500">ID: {{ visit.pregnancy.mother.mother_id }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                Week {{ visit.pregnancy.current_gestational_age }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ visit.get_visit_type_display }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ visit.visit_date|date:"g:i A" }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                {% if visit.pregnancy.risk_level == 'HIGH' %}
-                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High Risk</span>
-                {% elif visit.pregnancy.risk_level == 'MEDIUM' %}
-                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Medium</span>
-                {% else %}
-                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Low Risk</span>
-                {% endif %}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <a href="#" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
-                  Start Visit
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <div class="px-6 py-12 text-center">
-          <p class="text-gray-500">No appointments scheduled for today</p>
+    <!-- Left Column: Today's Schedule (2/3 width) -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Today's Schedule</h2>
+          <p class="text-sm text-gray-600 mt-1">{{ stats.todays_visits_count }} appointment{{ stats.todays_visits_count|pluralize }} scheduled</p>
         </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Recent Activity -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
-    </div>
-    
-    <div class="divide-y divide-gray-200">
-      {% if recent_visits %}
-        {% for visit in recent_visits %}
-        <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900">
-                {{ visit.get_visit_type_display }} completed for {{ visit.pregnancy.mother.get_full_name }}
-              </p>
-              <p class="text-sm text-gray-500 mt-1">
-                {{ visit.visit_date|date:"F j, Y" }} • Week {{ visit.pregnancy.current_gestational_age }}
-              </p>
+        
+        <div class="overflow-x-auto">
+          {% if todays_visits %}
+            <table class="w-full">
+              <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Mother</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Week</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Visit</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Risk</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                {% for visit in todays_visits %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.get_full_name }}</div>
+                    <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.mother_id }}</div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    Week {{ visit.pregnancy.current_gestational_age }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    ANC-{{ visit.visit_number }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if visit.pregnancy.risk_level == 'HIGH' %}
+                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                    {% elif visit.pregnancy.risk_level == 'MEDIUM' %}
+                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Medium</span>
+                    {% else %}
+                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Low</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <a href="#" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                      Start Visit
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="px-6 py-12 text-center">
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                <span class="text-3xl">📅</span>
+              </div>
+              <p class="text-gray-500 font-medium">No appointments scheduled for today</p>
+              <p class="text-sm text-gray-400 mt-1">Enjoy your day!</p>
             </div>
-            <span class="text-xs text-gray-400">{{ visit.visit_date|timesince }} ago</span>
-          </div>
+          {% endif %}
         </div>
-        {% endfor %}
-      {% else %}
-        <div class="px-6 py-8 text-center">
-          <p class="text-gray-500">No recent activity</p>
+      </div>
+    </div>
+
+    <!-- Right Column: Quick Actions & Recent Activity (1/3 width) -->
+    <div class="space-y-6">
+      
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="space-y-3">
+          <a href="#" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+            <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+              <span class="text-xl">👶</span>
+            </div>
+            <div class="ml-3 flex-1">
+              <p class="text-sm font-medium text-gray-900">Register Mother</p>
+              <p class="text-xs text-gray-500">Add new mother</p>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+
+          <a href="#" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+              <span class="text-xl">📋</span>
+            </div>
+            <div class="ml-3 flex-1">
+              <p class="text-sm font-medium text-gray-900">Record Visit</p>
+              <p class="text-xs text-gray-500">Log ANC visit</p>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+
+          <a href="#" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+            <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+              <span class="text-xl">🔍</span>
+            </div>
+            <div class="ml-3 flex-1">
+              <p class="text-sm font-medium text-gray-900">Search Mothers</p>
+              <p class="text-xs text-gray-500">Find records</p>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+
+          <a href="#" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
+            <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+              <span class="text-xl">📊</span>
+            </div>
+            <div class="ml-3 flex-1">
+              <p class="text-sm font-medium text-gray-900">View Reports</p>
+              <p class="text-xs text-gray-500">Statistics</p>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
         </div>
-      {% endif %}
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+        </div>
+        
+        <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+          {% if recent_visits %}
+            {% for visit in recent_visits %}
+            <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
+                  <span class="text-sm">✓</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    {{ visit.pregnancy.mother.get_full_name }}
+                  </p>
+                  <p class="text-sm text-gray-600 mt-0.5">
+                    ANC-{{ visit.visit_number }} • Week {{ visit.pregnancy.current_gestational_age }}
+                  </p>
+                  <p class="text-xs text-gray-400 mt-1">
+                    {{ visit.actual_visit_date|timesince }} ago
+                  </p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="px-6 py-8 text-center">
+              <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+                <span class="text-2xl">📝</span>
+              </div>
+              <p class="text-sm text-gray-500">No recent activity</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
     </div>
   </div>
 

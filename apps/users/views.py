@@ -281,6 +281,7 @@ def nurse_dashboard(request):
     }
     return render(request, 'dashboards/nurse_dashboard.html', context)
 
+
   
 @login_required
 def manager_dashboard(request):
