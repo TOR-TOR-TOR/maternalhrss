@@ -1,5 +1,11 @@
 # apps/users/views.py
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q, Count
+from django.utils import timezone
+from datetime import timedelta
+from apps.mothers.models import Mother, Pregnancy
+from apps.anc.models import ANCVisit
+from apps.reminders.models import SentReminder
 from django.contrib.auth import (
     login, logout, authenticate,
     update_session_auth_hash,
@@ -211,14 +217,41 @@ def dashboard(request):
 
 
 # Role-specific dashboard placeholders (to be expanded later)
+
 @login_required
 def nurse_dashboard(request):
     if request.user.role != 'NURSE':
         messages.error(request, 'Access denied. Nurses only.')
         return redirect('dashboard')
-    context = {'page_title': 'Nurse Dashboard', 'user': request.user}
-    return render(request, 'dashboards/nurse_dashboard.html', context)
+    
+    facility = request.user.facility
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
 
+    # Stat data
+    total_mothers = Mother.objects.filter(facility=facility).count()
+    todays_visits = ANCVisit.objects.filter(facility=facility, scheduled_date=today).count()
+    overdue_visits = ANCVisit.objects.filter(facility=facility, scheduled_date__lt=today, attended=False, missed=False).count()
+    high_risk = Pregnancy.objects.filter(mother__facility=facility, high_risk=True, status='ACTIVE').count()
+
+    # Table data
+    todays_anc_visits = ANCVisit.objects.filter(facility=facility, scheduled_date=today).select_related('pregnancy__mother').order_by('scheduled_date')
+
+    # Overdue reminders
+    overdue_reminders = SentReminder.objects.filter(facility=facility, scheduled_datetime__lt=timezone.now(), status='PENDING').order_by('-scheduled_datetime')[:10]
+
+    context = {
+        'page_title': 'Nurse Dashboard',
+        'user': request.user,
+        'total_mothers': total_mothers,
+        'todays_visits': todays_visits,
+        'overdue_visits': overdue_visits,
+        'high_risk': high_risk,
+        'todays_anc_visits': todays_anc_visits,
+        'overdue_reminders': overdue_reminders,
+        # Add trends if needed: e.g., mothers_trend = "+12%"
+    }
+    return render(request, 'dashboards/nurse_dashboard.html', context)
 
 @login_required
 def manager_dashboard(request):
