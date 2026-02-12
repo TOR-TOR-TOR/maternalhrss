@@ -223,10 +223,56 @@ def nurse_dashboard(request):
         messages.error(request, 'Access denied. Nurses only.')
         return redirect('dashboard')
 
+    # Get nurse's facility
+    facility = request.user.facility
+    
+    # Stats calculations
+    today = timezone.now().date()
+    
+    # Total active mothers in facility
+    active_mothers = Mother.objects.filter(
+        facility=facility,
+        pregnancies__status='ACTIVE'
+    ).distinct().count()
+    
+    # Today's scheduled visits
+    todays_visits = ANCVisit.objects.filter(
+        pregnancy__mother__facility=facility,
+        visit_date=today
+    ).select_related('pregnancy__mother', 'pregnancy').order_by('visit_date')
+    
+    # High risk cases
+    high_risk_count = Pregnancy.objects.filter(
+        mother__facility=facility,
+        status='ACTIVE',
+        risk_level='HIGH'
+    ).count()
+    
+    # Pending follow-ups (visits overdue by 7+ days)
+    pending_followups = ANCVisit.objects.filter(
+        pregnancy__mother__facility=facility,
+        visit_date__lt=today - timedelta(days=7),
+        status='SCHEDULED'
+    ).count()
+    
+    # Recent activity (last 5 visits)
+    recent_visits = ANCVisit.objects.filter(
+        pregnancy__mother__facility=facility,
+        status='COMPLETED'
+    ).select_related('pregnancy__mother').order_by('-visit_date')[:5]
+
     context = {
-        'page_title': 'Nurse Dashboard', 
+        'page_title': 'Nurse Dashboard',
         'user': request.user,
-        'today_formatted': timezone.now().strftime('%A, %d %B %Y')
+        'today_formatted': timezone.now().strftime('%A, %d %B %Y'),
+        'stats': {
+            'active_mothers': active_mothers,
+            'todays_visits_count': todays_visits.count(),
+            'high_risk_count': high_risk_count,
+            'pending_followups': pending_followups,
+        },
+        'todays_visits': todays_visits,
+        'recent_visits': recent_visits,
     }
     return render(request, 'dashboards/nurse_dashboard.html', context)
 

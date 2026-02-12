@@ -9,14 +9,110 @@
 
   {% include 'components/page-header.html' with title="Nurse Dashboard" subtitle=today_formatted %}
 
-  <!-- Confirmation -->
-  <p class="mt-8 text-green-600 font-medium text-center">
-    Green text below header → include tag worked!
-  </p>
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    
+    {% include 'components/stat-card.html' with label="Active Mothers" value=stats.active_mothers icon="👥" icon_bg="bg-blue-100" link_url="#" link_text="View all mothers" %}
+    
+    {% include 'components/stat-card.html' with label="Visits Today" value=stats.todays_visits_count icon="📅" icon_bg="bg-emerald-100" link_url="#" link_text="View schedule" %}
+    
+    {% include 'components/stat-card.html' with label="High Risk Cases" value=stats.high_risk_count icon="⚠️" icon_bg="bg-red-100" link_url="#" link_text="View cases" %}
+    
+    {% include 'components/stat-card.html' with label="Pending Follow-ups" value=stats.pending_followups icon="🔔" icon_bg="bg-amber-100" link_url="#" link_text="View pending" %}
+    
+  </div>
 
-  <!-- Placeholder -->
-  <div class="mt-8 bg-white p-8 rounded-xl border border-gray-200 shadow-sm min-h-[400px] flex items-center justify-center">
-    <p class="text-xl text-gray-500">Next: Stat cards + today's visits table</p>
+  <!-- Today's Schedule -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Today's Schedule</h2>
+      <p class="text-sm text-gray-600 mt-1">{{ stats.todays_visits_count }} appointment{{ stats.todays_visits_count|pluralize }} scheduled</p>
+    </div>
+    
+    <div class="overflow-x-auto">
+      {% if todays_visits %}
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Mother</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Week</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Visit Type</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Time</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Risk</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for visit in todays_visits %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.get_full_name }}</div>
+                <div class="text-sm text-gray-500">ID: {{ visit.pregnancy.mother.mother_id }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                Week {{ visit.pregnancy.current_gestational_age }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ visit.get_visit_type_display }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ visit.visit_date|date:"g:i A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% if visit.pregnancy.risk_level == 'HIGH' %}
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High Risk</span>
+                {% elif visit.pregnancy.risk_level == 'MEDIUM' %}
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Medium</span>
+                {% else %}
+                  <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Low Risk</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <a href="#" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                  Start Visit
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="px-6 py-12 text-center">
+          <p class="text-gray-500">No appointments scheduled for today</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+    </div>
+    
+    <div class="divide-y divide-gray-200">
+      {% if recent_visits %}
+        {% for visit in recent_visits %}
+        <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <p class="text-sm font-medium text-gray-900">
+                {{ visit.get_visit_type_display }} completed for {{ visit.pregnancy.mother.get_full_name }}
+              </p>
+              <p class="text-sm text-gray-500 mt-1">
+                {{ visit.visit_date|date:"F j, Y" }} • Week {{ visit.pregnancy.current_gestational_age }}
+              </p>
+            </div>
+            <span class="text-xs text-gray-400">{{ visit.visit_date|timesince }} ago</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="px-6 py-8 text-center">
+          <p class="text-gray-500">No recent activity</p>
+        </div>
+      {% endif %}
+    </div>
   </div>
 
 </div>
