@@ -222,7 +222,11 @@ def nurse_dashboard(request):
     if request.user.role != 'NURSE':
         messages.error(request, 'Access denied. Nurses only.')
         return redirect('dashboard')
-    context = {'page_title': 'Nurse Dashboard', 'user': request.user}
+
+    context = {
+        'page_title': 'Nurse Dashboard', 
+        'user': request.user}
+
     return render(request, 'dashboards/nurse_dashboard.html', context)
 
 
