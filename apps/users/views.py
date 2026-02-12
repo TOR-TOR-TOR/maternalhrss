@@ -217,7 +217,15 @@ def dashboard(request):
 
 
 # Role-specific dashboard placeholders (to be expanded later)
+@login_required
+def nurse_dashboard(request):
+    if request.user.role != 'NURSE':
+        messages.error(request, 'Access denied. Nurses only.')
+        return redirect('dashboard')
+    context = {'page_title': 'Nurse Dashboard', 'user': request.user}
+    return render(request, 'dashboards/nurse_dashboard.html', context)
 
+"""
 @login_required
 def nurse_dashboard(request):
     if request.user.role != 'NURSE':
@@ -252,7 +260,7 @@ def nurse_dashboard(request):
         # Add trends if needed: e.g., mothers_trend = "+12%"
     }
     return render(request, 'dashboards/nurse_dashboard.html', context)
-
+"""
 @login_required
 def manager_dashboard(request):
     if request.user.role != 'MANAGER':
