@@ -1,19 +1,19 @@
-{% comment %}
-Page header with title, optional subtitle and action buttons on the right.
+<!-- 
+  File: templates/components/page-header.html
+  Purpose: Reusable dashboard page header with title, subtitle, and optional actions
+  Usage: {% include "components/page-header.html" with title="..." subtitle="..." %}
+-->
 
-Usage examples:
-{% include "components/page-header.html" with title="Today's ANC Visits" %}
-{% include "components/page-header.html" with title="Mothers List" subtitle="Showing 48 records" actions=actions_html %}
-{% endcomment %}
-
-<div class="mb-6 md:mb-8">
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+<div class="pb-6 border-b border-gray-200">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight text-gray-900 md:text-3xl">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
         {{ title }}
       </h1>
       {% if subtitle %}
-        <p class="mt-1.5 text-gray-600">{{ subtitle }}</p>
+        <p class="mt-1.5 text-gray-600 text-sm md:text-base">
+          {{ subtitle }}
+        </p>
       {% endif %}
     </div>
 
