@@ -7,15 +7,18 @@
 
 <div class="space-y-8 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
 
-  <!-- Fixed single-line include – this will now render the component -->
-  {% include "components/page-header.html" with title="Nurse Dashboard" subtitle="Your facility overview for " ~ today_formatted" %}
+  <!-- Fixed include with date outside quotes -->
+  {% include "components/page-header.html" with 
+    title="Nurse Dashboard" 
+    subtitle="Your facility overview for " ~ 'now'|date:'l, d F Y' 
+  %}
 
-  <!-- Confirmation that parsing continues -->
+  <!-- Confirmation -->
   <p class="mt-8 text-green-600 font-medium text-center">
     Green text below header → include tag worked!
   </p>
 
-  <!-- Placeholder for stats -->
+  <!-- Placeholder -->
   <div class="mt-8 bg-white p-8 rounded-xl border border-gray-200 shadow-sm min-h-[400px] flex items-center justify-center">
     <p class="text-xl text-gray-500">Next: Stat cards + today's visits table</p>
   </div>
