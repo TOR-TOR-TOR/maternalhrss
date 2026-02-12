@@ -225,8 +225,9 @@ def nurse_dashboard(request):
 
     context = {
         'page_title': 'Nurse Dashboard', 
-        'user': request.user}
-
+        'user': request.user
+        'today_formatted': timezone.now().strftime('%A, %d %B %Y'),
+    }
     return render(request, 'dashboards/nurse_dashboard.html', context)
 
 
