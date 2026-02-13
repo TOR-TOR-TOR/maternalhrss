@@ -88,7 +88,7 @@
           type="text" 
           name="search" 
           value="{{ search_query }}"
-          placeholder="Search by mother name or ID..."
+          placeholder="Search by mother name..."
           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         >
       </div>
@@ -149,8 +149,8 @@
             {% for visit in visits %}
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.get_full_name }}</div>
-                <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.mother_id }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.full_name }}</div>
+                <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.phone_number }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                 ANC-{{ visit.visit_number }}
@@ -159,7 +159,7 @@
                 {{ visit.scheduled_date|date:"M d, Y" }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                Week {{ visit.pregnancy.current_gestational_age }}
+                Week {{ visit.pregnancy.gestational_age_weeks }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 {% if visit.pregnancy.risk_level == 'HIGH' %}

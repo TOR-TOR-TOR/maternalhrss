@@ -12,13 +12,15 @@
   <!-- Stats Grid -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     
-    {% include 'components/stat-card.html' with label="Active Mothers" value=stats.active_mothers icon="👥" icon_bg="bg-blue-100" link_url="{% url 'mother_list' %}" link_text="View all mothers" %}
+    {% url 'mother_list' as mother_list_url %}
+    {% include 'components/stat-card.html' with label="Active Mothers" value=stats.active_mothers icon="👥" icon_bg="bg-blue-100" link_url=mother_list_url link_text="View all mothers" %}
     
-    {% include 'components/stat-card.html' with label="Visits Today" value=stats.todays_visits_count icon="📅" icon_bg="bg-emerald-100" link_url="{% url 'anc_visit_list' %}" link_text="View schedule" %}
+    {% url 'anc_visit_list' as visit_list_url %}
+    {% include 'components/stat-card.html' with label="Visits Today" value=stats.todays_visits_count icon="📅" icon_bg="bg-emerald-100" link_url=visit_list_url link_text="View schedule" %}
     
-    {% include 'components/stat-card.html' with label="High Risk Cases" value=stats.high_risk_count icon="⚠️" icon_bg="bg-red-100" link_url="{% url 'mother_list' %}" link_text="View cases" %}
+    {% include 'components/stat-card.html' with label="High Risk Cases" value=stats.high_risk_count icon="⚠️" icon_bg="bg-red-100" link_url=mother_list_url link_text="View cases" %}
     
-    {% include 'components/stat-card.html' with label="Pending Follow-ups" value=stats.pending_followups icon="🔔" icon_bg="bg-amber-100" link_url="{% url 'anc_visit_list' %}" link_text="View pending" %}
+    {% include 'components/stat-card.html' with label="Pending Follow-ups" value=stats.pending_followups icon="🔔" icon_bg="bg-amber-100" link_url=visit_list_url link_text="View pending" %}
     
   </div>
 
@@ -49,11 +51,11 @@
                 {% for visit in todays_visits %}
                 <tr class="hover:bg-gray-50 transition-colors">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.get_full_name }}</div>
-                    <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.mother_id }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.full_name }}</div>
+                    <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.phone_number }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    Week {{ visit.pregnancy.current_gestational_age }}
+                    Week {{ visit.pregnancy.gestational_age_weeks }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     ANC-{{ visit.visit_number }}
@@ -166,10 +168,10 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-medium text-gray-900 truncate">
-                    {{ visit.pregnancy.mother.get_full_name }}
+                    {{ visit.pregnancy.mother.full_name }}
                   </p>
                   <p class="text-sm text-gray-600 mt-0.5">
-                    ANC-{{ visit.visit_number }} • Week {{ visit.pregnancy.current_gestational_age }}
+                    ANC-{{ visit.visit_number }} • Week {{ visit.pregnancy.gestational_age_weeks }}
                   </p>
                   <p class="text-xs text-gray-400 mt-1">
                     {{ visit.actual_visit_date|timesince }} ago

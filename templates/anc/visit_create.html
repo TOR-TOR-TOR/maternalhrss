@@ -20,7 +20,7 @@
       </h1>
       <p class="mt-1.5 text-gray-600 text-sm md:text-base">
         {% if pregnancy %}
-          For {{ pregnancy.mother.get_full_name }} • Week {{ pregnancy.current_gestational_age }}
+          For {{ pregnancy.mother.full_name }} • Week {{ pregnancy.gestational_age_weeks }}
         {% else %}
           Create a new antenatal care appointment
         {% endif %}
@@ -33,18 +33,18 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="bg-blue-50 rounded-lg p-4">
       <p class="text-sm text-blue-600 font-medium">Mother</p>
-      <p class="text-lg font-bold text-gray-900 mt-1">{{ pregnancy.mother.get_full_name }}</p>
-      <p class="text-sm text-gray-600">{{ pregnancy.mother.age }} years • {{ pregnancy.mother.mother_id }}</p>
+      <p class="text-lg font-bold text-gray-900 mt-1">{{ pregnancy.mother.full_name }}</p>
+      <p class="text-sm text-gray-600">{{ pregnancy.mother.age }} years • {{ pregnancy.mother.phone_number }}</p>
     </div>
     <div class="bg-purple-50 rounded-lg p-4">
       <p class="text-sm text-purple-600 font-medium">Gestational Age</p>
-      <p class="text-lg font-bold text-gray-900 mt-1">Week {{ pregnancy.current_gestational_age }}</p>
+      <p class="text-lg font-bold text-gray-900 mt-1">Week {{ pregnancy.gestational_age_weeks }}</p>
       <p class="text-sm text-gray-600">EDD: {{ pregnancy.edd|date:"M d, Y" }}</p>
     </div>
     <div class="bg-emerald-50 rounded-lg p-4">
       <p class="text-sm text-emerald-600 font-medium">Previous Visits</p>
       <p class="text-lg font-bold text-gray-900 mt-1">{{ pregnancy.anc_visits.count }}</p>
-      <p class="text-sm text-gray-600">G{{ pregnancy.gravidity }} P{{ pregnancy.parity }}</p>
+      <p class="text-sm text-gray-600">G{{ pregnancy.pregnancy_number }} P{{ pregnancy.parity }}</p>
     </div>
   </div>
   {% endif %}
@@ -109,14 +109,20 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
         <div>
-          <p class="font-medium text-blue-900">ANC Visit Schedule</p>
+          <p class="font-medium text-blue-900">Kenya MoH 8-Contact ANC Schedule</p>
           <ul class="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
-            <li>First visit: Before 12 weeks (ideally before 8 weeks)</li>
-            <li>Second visit: 20-24 weeks</li>
-            <li>Third visit: 28-32 weeks</li>
-            <li>Fourth visit: 36 weeks</li>
-            <li>Additional visits: Weekly from 38 weeks until delivery</li>
+            <li>Contact 1: Week 10 (1st Trimester)</li>
+            <li>Contact 2: Week 20 (2nd Trimester)</li>
+            <li>Contact 3: Week 26 (2nd Trimester)</li>
+            <li>Contact 4: Week 30 (3rd Trimester)</li>
+            <li>Contact 5: Week 34 (3rd Trimester)</li>
+            <li>Contact 6: Week 36 (3rd Trimester)</li>
+            <li>Contact 7: Week 38 (3rd Trimester)</li>
+            <li>Contact 8: Week 40 (3rd Trimester - at EDD)</li>
           </ul>
+          <p class="text-sm text-blue-700 mt-2">
+            <strong>Note:</strong> Visits are auto-generated when pregnancy is registered
+          </p>
         </div>
       </div>
     </div>
