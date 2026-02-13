@@ -51,15 +51,11 @@ class ANCVisitForm(forms.ModelForm):
             'fundal_height': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
                 'placeholder': 'Fundal height (cm)',
-                'step': '0.1',
                 'min': '10',
                 'max': '50'
             }),
-            'fetal_heartbeat': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Fetal heartbeat (bpm)',
-                'min': '100',
-                'max': '200'
+            'fetal_heartbeat': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
             }),
             'iron_given': forms.CheckboxInput(attrs={
                 'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'

@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit ANC Visit {{ visit.visit_number }}{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-3 pb-6 border-b border-gray-200">
+    <a href="{% url 'anc_visit_detail' visit.pk %}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+        Edit ANC Visit {{ visit.visit_number }}
+      </h1>
+      <p class="mt-1.5 text-gray-600 text-sm md:text-base">
+        {{ visit.pregnancy.mother.get_full_name }} • Week {{ visit.pregnancy.current_gestational_age }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Info Alert -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div>
+        <p class="font-medium text-blue-900">Editing Scheduled Visit</p>
+        <p class="text-sm text-blue-700 mt-1">
+          You can update the scheduled date and notes for this visit. To record the actual visit measurements, use the "Record Visit" button instead.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Visit Details -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Visit Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Date *</label>
+          {{ form.scheduled_date }}
+          {% if form.scheduled_date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.scheduled_date.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Next Visit Date</label>
+          {{ form.next_visit_date }}
+          {% if form.next_visit_date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.next_visit_date.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Clinical Notes -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Clinical Notes</h2>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+        {{ form.clinical_notes }}
+        <p class="mt-1 text-xs text-gray-500">Any special instructions or updates for this visit</p>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex gap-4 justify-end">
+      <a href="{% url 'anc_visit_detail' visit.pk %}" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Cancel
+      </a>
+      <button type="submit" class="px-8 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Update Visit
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}

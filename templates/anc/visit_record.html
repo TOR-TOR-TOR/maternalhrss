@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Record ANC Visit {{ visit.visit_number }}{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6 p-4 md:p-6 lg:p-8 max-w-6xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-3 pb-6 border-b border-gray-200">
+    <a href="{% url 'anc_visit_detail' visit.pk %}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+        Record ANC Visit {{ visit.visit_number }}
+      </h1>
+      <p class="mt-1.5 text-gray-600 text-sm md:text-base">
+        {{ mother.full_name }} • Week {{ pregnancy.gestational_age_weeks }} • {{ visit.scheduled_date|date:"M d, Y" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Mother & Pregnancy Summary -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-blue-50 rounded-lg p-4">
+      <p class="text-sm text-blue-600 font-medium">Mother</p>
+      <p class="text-lg font-bold text-gray-900 mt-1">{{ mother.full_name }}</p>
+      <p class="text-sm text-gray-600">{{ mother.age }} years • {{ mother.phone_number }}</p>
+    </div>
+    <div class="bg-purple-50 rounded-lg p-4">
+      <p class="text-sm text-purple-600 font-medium">Pregnancy</p>
+      <p class="text-lg font-bold text-gray-900 mt-1">Week {{ pregnancy.gestational_age_weeks }}</p>
+      <p class="text-sm text-gray-600">G{{ pregnancy.pregnancy_number }} P{{ pregnancy.parity }} • EDD: {{ pregnancy.edd|date:"M d" }}</p>
+    </div>
+    <div class="bg-emerald-50 rounded-lg p-4">
+      <p class="text-sm text-emerald-600 font-medium">Risk Level</p>
+      <p class="text-lg font-bold text-gray-900 mt-1">{{ pregnancy.get_risk_level_display }}</p>
+      <p class="text-sm text-gray-600">Visit {{ visit.visit_number }} of 8</p>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Vital Signs & Measurements -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <span class="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-lg text-blue-600 font-bold">1</span>
+        Vital Signs & Measurements
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Weight (kg) *</label>
+          {{ form.weight_kg }}
+          {% if form.weight_kg.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.weight_kg.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Blood Pressure *</label>
+          {{ form.blood_pressure }}
+          {% if form.blood_pressure.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.blood_pressure.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Format: 120/80</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Hemoglobin (g/dL)</label>
+          {{ form.hemoglobin }}
+          {% if form.hemoglobin.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.hemoglobin.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Fundal Height (cm)</label>
+          {{ form.fundal_height }}
+          {% if form.fundal_height.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.fundal_height.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg">
+          {{ form.fetal_heartbeat }}
+          <label for="{{ form.fetal_heartbeat.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-gray-900">Fetal Heartbeat Detected</p>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Medications & Interventions -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <span class="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-lg text-purple-600 font-bold">2</span>
+        Medications & Interventions
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          {{ form.iron_given }}
+          <label for="{{ form.iron_given.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-gray-900">Iron Supplement</p>
+            <p class="text-sm text-gray-500">Check if iron supplement was given</p>
+          </label>
+        </div>
+        <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          {{ form.folic_acid_given }}
+          <label for="{{ form.folic_acid_given.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-gray-900">Folic Acid</p>
+            <p class="text-sm text-gray-500">Check if folic acid was given</p>
+          </label>
+        </div>
+        <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          {{ form.deworming_done }}
+          <label for="{{ form.deworming_done.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-gray-900">Deworming</p>
+            <p class="text-sm text-gray-500">Check if deworming was done</p>
+          </label>
+        </div>
+        <div class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          {{ form.tetanus_vaccine_given }}
+          <label for="{{ form.tetanus_vaccine_given.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-gray-900">Tetanus Vaccine (TT)</p>
+            <p class="text-sm text-gray-500">Check if tetanus vaccine was given</p>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Signs & Observations -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <span class="flex items-center justify-center w-8 h-8 bg-amber-100 rounded-lg text-amber-600 font-bold">3</span>
+        Danger Signs & Observations
+      </h2>
+      <div class="space-y-6">
+        <div class="flex items-center gap-3 p-4 border-2 border-red-200 bg-red-50 rounded-lg">
+          {{ form.has_danger_signs }}
+          <label for="{{ form.has_danger_signs.id_for_label }}" class="flex-1 cursor-pointer">
+            <p class="font-medium text-red-900">Danger Signs Detected</p>
+            <p class="text-sm text-red-700">Check if any danger signs were observed during this visit</p>
+          </label>
+        </div>
+
+        <div id="danger-signs-notes" style="display: none;">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Describe Danger Signs *</label>
+          {{ form.danger_signs_notes }}
+          {% if form.danger_signs_notes.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.danger_signs_notes.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-red-600">Please provide detailed description of danger signs observed</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clinical Notes -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+        <span class="flex items-center justify-center w-8 h-8 bg-emerald-100 rounded-lg text-emerald-600 font-bold">4</span>
+        Clinical Notes & Next Visit
+      </h2>
+      <div class="space-y-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Clinical Notes</label>
+          {{ form.clinical_notes }}
+          <p class="mt-1 text-xs text-gray-500">Any additional observations, recommendations, or notes about this visit</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Next Visit Date</label>
+          {{ form.next_visit_date }}
+          {% if form.next_visit_date.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ form.next_visit_date.errors.0 }}</p>
+          {% endif %}
+          <p class="mt-1 text-xs text-gray-500">Recommended date for next ANC visit (auto-scheduled visits already exist)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex gap-4 justify-end sticky bottom-0 bg-white p-4 border-t border-gray-200 -mx-4 md:-mx-6 lg:-mx-8">
+      <a href="{% url 'anc_visit_detail' visit.pk %}" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Cancel
+      </a>
+      <button type="submit" class="px-8 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Save Visit Record
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+// Show/hide danger signs notes based on checkbox
+document.addEventListener('DOMContentLoaded', function() {
+  const dangerCheckbox = document.getElementById('{{ form.has_danger_signs.id_for_label }}');
+  const dangerNotes = document.getElementById('danger-signs-notes');
+  
+  function toggleDangerNotes() {
+    if (dangerCheckbox.checked) {
+      dangerNotes.style.display = 'block';
+    } else {
+      dangerNotes.style.display = 'none';
+    }
+  }
+  
+  dangerCheckbox.addEventListener('change', toggleDangerNotes);
+  toggleDangerNotes(); // Check initial state
+});
+</script>
+
+{% endblock %}

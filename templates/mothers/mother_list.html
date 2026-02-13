@@ -37,7 +37,7 @@
           type="text" 
           name="search" 
           value="{{ search_query }}"
-          placeholder="Search by name, ID, phone..."
+          placeholder="Search by name, phone..."
           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
         >
       </div>
@@ -49,7 +49,7 @@
           <option value="">All Status</option>
           <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active</option>
           <option value="DELIVERED" {% if status_filter == 'DELIVERED' %}selected{% endif %}>Delivered</option>
-          <option value="MISCARRIED" {% if status_filter == 'MISCARRIED' %}selected{% endif %}>Miscarried</option>
+          <option value="MISCARRIAGE" {% if status_filter == 'MISCARRIAGE' %}selected{% endif %}>Miscarriage</option>
         </select>
       </div>
 
@@ -83,7 +83,6 @@
         <table class="w-full">
           <thead class="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Mother ID</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Name</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Phone</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Age</th>
@@ -96,11 +95,8 @@
             {% for mother in mothers %}
             <tr class="hover:bg-gray-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ mother.mother_id }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{{ mother.get_full_name }}</div>
-                <div class="text-sm text-gray-500">{{ mother.national_id }}</div>
+                <div class="text-sm font-medium text-gray-900">{{ mother.full_name }}</div>
+                <div class="text-sm text-gray-500">Reg: {{ mother.registration_date|date:"M d, Y" }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ mother.phone_number }}
@@ -109,16 +105,14 @@
                 {{ mother.age }} years
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ mother.village }}, {{ mother.ward }}
+                {{ mother.ward }}, {{ mother.sub_county }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                {% with active_preg=mother.pregnancies.first %}
-                  {% if active_preg.status == 'ACTIVE' %}
+                {% with active_preg=mother.active_pregnancy %}
+                  {% if active_preg %}
                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Active</span>
-                  {% elif active_preg.status == 'DELIVERED' %}
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Delivered</span>
                   {% else %}
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ active_preg.status }}</span>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">No Active Pregnancy</span>
                   {% endif %}
                 {% endwith %}
               </td>

@@ -15,15 +15,11 @@ class MotherForm(forms.ModelForm):
             'date_of_birth',
             'national_id',
             'phone_number',
-            'alternative_phone',
+            'alternate_phone',
             'county',
             'sub_county',
             'ward',
             'village',
-            'preferred_language',
-            'education_level',
-            'marital_status',
-            'occupation',
             'next_of_kin_name',
             'next_of_kin_phone',
             'next_of_kin_relationship',
@@ -43,13 +39,13 @@ class MotherForm(forms.ModelForm):
             }),
             'national_id': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'National ID number'
+                'placeholder': 'National ID number (optional)'
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': '+254...'
+                'placeholder': '+254712345678'
             }),
-            'alternative_phone': forms.TextInput(attrs={
+            'alternate_phone': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
                 'placeholder': 'Alternative phone (optional)'
             }),
@@ -67,20 +63,7 @@ class MotherForm(forms.ModelForm):
             }),
             'village': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Village'
-            }),
-            'preferred_language': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-            }),
-            'education_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-            }),
-            'marital_status': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
-            }),
-            'occupation': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Occupation'
+                'placeholder': 'Village (optional)'
             }),
             'next_of_kin_name': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
@@ -92,7 +75,7 @@ class MotherForm(forms.ModelForm):
             }),
             'next_of_kin_relationship': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Relationship (e.g., Husband, Mother)'
+                'placeholder': 'Relationship (e.g., Husband, Mother, Sister)'
             }),
         }
 
@@ -105,35 +88,48 @@ class PregnancyForm(forms.ModelForm):
         model = Pregnancy
         fields = [
             'lmp',
-            'edd',
-            'gravidity',
+            'pregnancy_number',
             'parity',
-            'expected_delivery_facility',
             'risk_level',
+            'risk_factors',
+            'previous_csection',
+            'previous_complications',
+            'notes',
         ]
         widgets = {
             'lmp': forms.DateInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
                 'type': 'date'
             }),
-            'edd': forms.DateInput(attrs={
+            'pregnancy_number': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'type': 'date'
-            }),
-            'gravidity': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Number of pregnancies',
+                'placeholder': 'Gravida (G)',
                 'min': '1'
             }),
             'parity': forms.NumberInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Number of births',
+                'placeholder': 'Para (P)',
                 'min': '0'
-            }),
-            'expected_delivery_facility': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
             }),
             'risk_level': forms.Select(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+            }),
+            'risk_factors': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
+                'rows': '3',
+                'placeholder': 'List risk factors: High BP, diabetes, previous C-section, age >35, etc.'
+            }),
+            'previous_csection': forms.CheckboxInput(attrs={
+                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
+            }),
+            'previous_complications': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
+                'rows': '3',
+                'placeholder': 'Details of any previous pregnancy/delivery complications'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
+                'rows': '3',
+                'placeholder': 'Additional clinical notes'
             }),
         }
