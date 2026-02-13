@@ -11,6 +11,10 @@ urlpatterns = [
     
     # Authentication & User Management
     path('users/', include('apps.users.urls')),
+
+    path('mothers/', include('apps.mothers.urls')),  
+    
+    path('anc/', include('apps.anc.urls')),          
 ]
 
 # Customize admin site headers

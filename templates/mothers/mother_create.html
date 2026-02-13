@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register New Mother - Maternal HRSS{% endblock %}
+
+{% block content %}
+
+<div class="space-y-6 p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-3 pb-6 border-b border-gray-200">
+    <a href="{% url 'mother_list' %}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+        Register New Mother
+      </h1>
+      <p class="mt-1.5 text-gray-600 text-sm md:text-base">
+        Add a new mother and create their pregnancy record
+      </p>
+    </div>
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Personal Information -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Personal Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+          {{ mother_form.first_name }}
+          {% if mother_form.first_name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ mother_form.first_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+          {{ mother_form.last_name }}
+          {% if mother_form.last_name.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ mother_form.last_name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth *</label>
+          {{ mother_form.date_of_birth }}
+          {% if mother_form.date_of_birth.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ mother_form.date_of_birth.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">National ID *</label>
+          {{ mother_form.national_id }}
+          {% if mother_form.national_id.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ mother_form.national_id.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+          {{ mother_form.phone_number }}
+          {% if mother_form.phone_number.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ mother_form.phone_number.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Phone</label>
+          {{ mother_form.alternative_phone }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Marital Status *</label>
+          {{ mother_form.marital_status }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Education Level *</label>
+          {{ mother_form.education_level }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Occupation</label>
+          {{ mother_form.occupation }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Language *</label>
+          {{ mother_form.preferred_language }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Location Information -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">County *</label>
+          {{ mother_form.county }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Sub-County *</label>
+          {{ mother_form.sub_county }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Ward *</label>
+          {{ mother_form.ward }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Village *</label>
+          {{ mother_form.village }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Next of Kin -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Next of Kin</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+          {{ mother_form.next_of_kin_name }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Relationship *</label>
+          {{ mother_form.next_of_kin_relationship }}
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+          {{ mother_form.next_of_kin_phone }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Pregnancy Information -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Current Pregnancy</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Last Menstrual Period (LMP) *</label>
+          {{ pregnancy_form.lmp }}
+          {% if pregnancy_form.lmp.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ pregnancy_form.lmp.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Expected Delivery Date (EDD) *</label>
+          {{ pregnancy_form.edd }}
+          {% if pregnancy_form.edd.errors %}
+            <p class="mt-1 text-sm text-red-600">{{ pregnancy_form.edd.errors.0 }}</p>
+          {% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Gravidity *</label>
+          {{ pregnancy_form.gravidity }}
+          <p class="mt-1 text-xs text-gray-500">Number of pregnancies (including this one)</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Parity *</label>
+          {{ pregnancy_form.parity }}
+          <p class="mt-1 text-xs text-gray-500">Number of previous births</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Expected Delivery Facility *</label>
+          {{ pregnancy_form.expected_delivery_facility }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Risk Level *</label>
+          {{ pregnancy_form.risk_level }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex gap-4 justify-end">
+      <a href="{% url 'mother_list' %}" class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Cancel
+      </a>
+      <button type="submit" class="px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+        Register Mother
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+{% endblock %}
