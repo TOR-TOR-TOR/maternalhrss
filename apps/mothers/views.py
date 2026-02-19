@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import Mother, Pregnancy
-from .forms import MotherForm, PregnancyForm  # You'll need to create these forms
+from .forms import MotherForm, PregnancyForm
 from django.utils import timezone
 
 
@@ -25,7 +25,6 @@ def mother_list(request):
         mothers = mothers.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
-            Q(mother_id__icontains=search_query) |
             Q(phone_number__icontains=search_query) |
             Q(national_id__icontains=search_query)
         )
@@ -70,7 +69,7 @@ def mother_detail(request, pk):
     active_pregnancy = pregnancies.filter(status='ACTIVE').first()
     
     context = {
-        'page_title': f'{mother.get_full_name()} - Details',
+        'page_title': f'{mother.full_name} - Details',
         'mother': mother,
         'pregnancies': pregnancies,
         'active_pregnancy': active_pregnancy,
@@ -81,27 +80,41 @@ def mother_detail(request, pk):
 @login_required
 def mother_create(request):
     """
-    Register a new mother.
+    Register a new mother with initial pregnancy.
     """
     if request.method == 'POST':
         mother_form = MotherForm(request.POST)
         pregnancy_form = PregnancyForm(request.POST)
         
         if mother_form.is_valid() and pregnancy_form.is_valid():
-            # Save mother
-            mother = mother_form.save(commit=False)
-            mother.facility = request.user.facility
-            mother.save()
-            
-            # Save pregnancy
-            pregnancy = pregnancy_form.save(commit=False)
-            pregnancy.mother = mother
-            pregnancy.save()
-            
-            messages.success(request, f'Mother {mother.get_full_name()} registered successfully!')
-            return redirect('mother_detail', pk=mother.pk)
+            try:
+                # Save mother
+                mother = mother_form.save(commit=False)
+                mother.facility = request.user.facility
+                mother.registered_by = request.user
+                mother.save()
+                
+                # Save pregnancy
+                pregnancy = pregnancy_form.save(commit=False)
+                pregnancy.mother = mother
+                pregnancy.facility = request.user.facility  # CRITICAL FIX
+                pregnancy.registered_by = request.user
+                pregnancy.save()
+                
+                messages.success(request, f'Mother {mother.full_name} registered successfully!')
+                return redirect('mother_detail', pk=mother.pk)
+            except Exception as e:
+                messages.error(request, f'Error saving mother: {str(e)}')
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Show specific field errors
+            if mother_form.errors:
+                for field, errors in mother_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'{field}: {error}')
+            if pregnancy_form.errors:
+                for field, errors in pregnancy_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f'Pregnancy {field}: {error}')
     else:
         mother_form = MotherForm()
         pregnancy_form = PregnancyForm()
@@ -125,15 +138,18 @@ def mother_edit(request, pk):
         form = MotherForm(request.POST, instance=mother)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Mother {mother.get_full_name()} updated successfully!')
+            messages.success(request, f'Mother {mother.full_name} updated successfully!')
             return redirect('mother_detail', pk=mother.pk)
         else:
-            messages.error(request, 'Please correct the errors below.')
+            # Show specific field errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = MotherForm(instance=mother)
     
     context = {
-        'page_title': f'Edit {mother.get_full_name()}',
+        'page_title': f'Edit {mother.full_name}',
         'mother': mother,
         'form': form,
     }
@@ -143,18 +159,18 @@ def mother_edit(request, pk):
 @login_required
 def mother_delete(request, pk):
     """
-    Delete a mother record (soft delete recommended).
+    Delete a mother record.
     """
     mother = get_object_or_404(Mother, pk=pk, facility=request.user.facility)
     
     if request.method == 'POST':
-        mother_name = mother.get_full_name()
+        mother_name = mother.full_name
         mother.delete()
         messages.success(request, f'Mother {mother_name} has been deleted.')
         return redirect('mother_list')
     
     context = {
-        'page_title': f'Delete {mother.get_full_name()}',
+        'page_title': f'Delete {mother.full_name}',
         'mother': mother,
     }
     return render(request, 'mothers/mother_delete.html', context)
