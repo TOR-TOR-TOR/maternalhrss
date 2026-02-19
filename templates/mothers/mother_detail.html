@@ -11,6 +11,8 @@
   <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between pb-6 border-b border-gray-200">
     <div>
       <div class="flex items-center gap-3">
+        {% url 'mother_list' as back_url %}
+        {% include 'components/navigation-buttons.html' with back_url=back_url back_text="Back to List" %} 
         <a href="{% url 'mother_list' %}" class="text-gray-400 hover:text-gray-600">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>

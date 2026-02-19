@@ -1,0 +1,31 @@
+<!-- templates/components/navigation-buttons.html -->
+
+<div class="flex items-center gap-3">
+  {% if back_url %}
+  <!-- Contextual Back Button -->
+  <a href="{{ back_url }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    {{ back_text|default:"Back" }}
+  </a>
+  {% else %}
+  <!-- Browser History Back Button -->
+  <button onclick="window.history.back()" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    Back
+  </button>
+  {% endif %}
+
+  {% if forward_url %}
+  <!-- Forward Button (if provided) -->
+  <a href="{{ forward_url }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+    {{ forward_text|default:"Next" }}
+    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+  </a>
+  {% endif %}
+</div>
