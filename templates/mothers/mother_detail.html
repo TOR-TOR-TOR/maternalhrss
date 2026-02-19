@@ -165,7 +165,11 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">Trimester</p>
-            <p class="font-medium text-gray-900">{{ active_pregnancy.trimester }}{{ active_pregnancy.trimester|ordinal }} Trimester</p>
+            <p class="font-medium text-gray-900">
+              {% if active_pregnancy.trimester == 1 %}1st Trimester
+              {% elif active_pregnancy.trimester == 2 %}2nd Trimester
+              {% else %}3rd Trimester{% endif %}
+            </p>
           </div>
           <div>
             <p class="text-sm text-gray-500">Days Remaining</p>
