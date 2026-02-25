@@ -2,76 +2,201 @@
 {% load static %}
 
 {% block title %}Nurse Dashboard - Maternal HRSS{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
 
-<div class="space-y-8 p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+<div class="space-y-6">
 
-  {% include 'components/page-header.html' with title="Nurse Dashboard" subtitle=today_formatted %}
-
-  <!-- Stats Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    
-    {% url 'mother_list' as mother_list_url %}
-    {% include 'components/stat-card.html' with label="Active Mothers" value=stats.active_mothers icon="👥" icon_bg="bg-blue-100" link_url=mother_list_url link_text="View all mothers" %}
-    
-    {% url 'anc_visit_list' as visit_list_url %}
-    {% include 'components/stat-card.html' with label="Visits Today" value=stats.todays_visits_count icon="📅" icon_bg="bg-emerald-100" link_url=visit_list_url link_text="View schedule" %}
-    
-    {% include 'components/stat-card.html' with label="High Risk Cases" value=stats.high_risk_count icon="⚠️" icon_bg="bg-red-100" link_url=mother_list_url link_text="View cases" %}
-    
-    {% include 'components/stat-card.html' with label="Pending Follow-ups" value=stats.pending_followups icon="🔔" icon_bg="bg-amber-100" link_url=visit_list_url link_text="View pending" %}
-    
+  <!-- Welcome Banner -->
+  <div class="rounded-xl p-6 shadow-sm" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-white">Welcome back, {{ user.first_name|default:user.username }}!</h2>
+        <p class="mt-1 text-sm" style="color: #FFFDD0;">{{ today_formatted }} • {{ user.facility.name|default:"Your Facility" }}</p>
+      </div>
+      <div class="hidden md:block">
+        <svg class="h-20 w-20 text-white opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+        </svg>
+      </div>
+    </div>
   </div>
 
-  <!-- Two Column Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Active Mothers -->
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 rounded-lg p-3" style="background-color: #98FF98;">
+            <svg class="h-8 w-8" style="color: #228B22;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="truncate text-sm font-medium" style="color: #333333;">Active Mothers</dt>
+              <dd class="flex items-baseline">
+                <div class="text-3xl font-bold" style="color: #228B22;">{{ stats.active_mothers }}</div>
+                <p class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                  <svg class="h-5 w-5 flex-shrink-0 self-center text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                </p>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-3" style="background-color: #FFFDD0;">
+        <a href="{% url 'mother_list' %}" class="text-sm font-medium hover:underline" style="color: #228B22;">
+          View all mothers →
+        </a>
+      </div>
+    </div>
+
+    <!-- Visits Today -->
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 rounded-lg p-3" style="background-color: #9DC183;">
+            <svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="truncate text-sm font-medium" style="color: #333333;">Visits Today</dt>
+              <dd class="flex items-baseline">
+                <div class="text-3xl font-bold" style="color: #228B22;">{{ stats.todays_visits_count }}</div>
+                {% if stats.todays_visits_count > 0 %}
+                <span class="ml-2 text-sm text-gray-500">scheduled</span>
+                {% endif %}
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-3" style="background-color: #FFFDD0;">
+        <a href="{% url 'anc_visit_list' %}" class="text-sm font-medium hover:underline" style="color: #228B22;">
+          View schedule →
+        </a>
+      </div>
+    </div>
+
+    <!-- High Risk Cases -->
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 rounded-lg bg-red-100 p-3">
+            <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="truncate text-sm font-medium" style="color: #333333;">High Risk</dt>
+              <dd class="flex items-baseline">
+                <div class="text-3xl font-bold text-red-600">{{ stats.high_risk_count }}</div>
+                <span class="ml-2 text-sm text-gray-500">cases</span>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-red-50 px-6 py-3">
+        <a href="{% url 'mother_list' %}?risk=HIGH" class="text-sm font-medium text-red-700 hover:underline">
+          View cases →
+        </a>
+      </div>
+    </div>
+
+    <!-- Pending Follow-ups -->
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div class="p-6">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 rounded-lg bg-amber-100 p-3">
+            <svg class="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+          </div>
+          <div class="ml-5 w-0 flex-1">
+            <dl>
+              <dt class="truncate text-sm font-medium" style="color: #333333;">Pending Follow-ups</dt>
+              <dd class="flex items-baseline">
+                <div class="text-3xl font-bold text-amber-600">{{ stats.pending_followups }}</div>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+      <div class="bg-amber-50 px-6 py-3">
+        <a href="{% url 'anc_visit_list' %}?status=overdue" class="text-sm font-medium text-amber-700 hover:underline">
+          View pending →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
     
-    <!-- Left Column: Today's Schedule (2/3 width) -->
+    <!-- Today's Schedule (2/3) -->
     <div class="lg:col-span-2">
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">Today's Schedule</h2>
-          <p class="text-sm text-gray-600 mt-1">{{ stats.todays_visits_count }} appointment{{ stats.todays_visits_count|pluralize }} scheduled</p>
+      <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200 px-6 py-4" style="background: linear-gradient(90deg, rgba(157, 193, 131, 0.1) 0%, rgba(255, 253, 208, 0.2) 100%);">
+          <h3 class="text-lg font-semibold" style="color: #333333;">Today's Schedule</h3>
+          <p class="mt-1 text-sm text-gray-600">{{ stats.todays_visits_count }} appointment{{ stats.todays_visits_count|pluralize }} for {{ today_formatted }}</p>
         </div>
         
         <div class="overflow-x-auto">
           {% if todays_visits %}
-            <table class="w-full">
-              <thead class="bg-gray-50 border-b border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Mother</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Week</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Visit</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Risk</th>
-                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">Action</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: #333333;">Mother</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: #333333;">Week</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: #333333;">Visit</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style="color: #333333;">Risk</th>
+                  <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style="color: #333333;">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-200">
+              <tbody class="divide-y divide-gray-200 bg-white">
                 {% for visit in todays_visits %}
                 <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900">{{ visit.pregnancy.mother.full_name }}</div>
-                    <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.phone_number }}</div>
+                  <td class="whitespace-nowrap px-6 py-4">
+                    <div class="flex items-center">
+                      <div class="h-10 w-10 flex-shrink-0 rounded-full flex items-center justify-center text-white font-semibold" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
+                        {{ visit.pregnancy.mother.first_name.0 }}{{ visit.pregnancy.mother.last_name.0 }}
+                      </div>
+                      <div class="ml-4">
+                        <div class="font-medium" style="color: #333333;">{{ visit.pregnancy.mother.full_name }}</div>
+                        <div class="text-sm text-gray-500">{{ visit.pregnancy.mother.phone_number }}</div>
+                      </div>
+                    </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="whitespace-nowrap px-6 py-4 text-sm" style="color: #333333;">
                     Week {{ visit.pregnancy.gestational_age_weeks }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td class="whitespace-nowrap px-6 py-4 text-sm font-medium" style="color: #228B22;">
                     ANC-{{ visit.visit_number }}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
+                  <td class="whitespace-nowrap px-6 py-4">
                     {% if visit.pregnancy.risk_level == 'HIGH' %}
-                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">High</span>
+                      <span class="inline-flex rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800">High</span>
                     {% elif visit.pregnancy.risk_level == 'MEDIUM' %}
-                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Medium</span>
+                      <span class="inline-flex rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">Medium</span>
                     {% else %}
-                      <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">Low</span>
+                      <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold" style="background-color: #98FF98; color: #228B22;">Low</span>
                     {% endif %}
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                    <a href="{% url 'anc_visit_record' visit.id %}" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
-                      Start Visit
+                  <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                    <a href="{% url 'anc_visit_record' visit.id %}" class="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity" style="background-color: #228B22;">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                      Start
                     </a>
                   </td>
                 </tr>
@@ -79,118 +204,100 @@
               </tbody>
             </table>
           {% else %}
-            <div class="px-6 py-12 text-center">
-              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                <span class="text-3xl">📅</span>
-              </div>
-              <p class="text-gray-500 font-medium">No appointments scheduled for today</p>
-              <p class="text-sm text-gray-400 mt-1">Enjoy your day!</p>
+            <div class="px-6 py-16 text-center">
+              <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <h3 class="mt-4 text-lg font-medium text-gray-900">No appointments today</h3>
+              <p class="mt-2 text-sm text-gray-500">Enjoy a well-deserved break!</p>
             </div>
           {% endif %}
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Quick Actions & Recent Activity (1/3 width) -->
+    <!-- Quick Actions & Recent Activity (1/3) -->
     <div class="space-y-6">
       
       <!-- Quick Actions -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div class="space-y-3">
-          <a href="{% url 'mother_create' %}" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
-            <div class="flex-shrink-0 w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-              <span class="text-xl">👶</span>
+      <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200 px-6 py-4" style="background: linear-gradient(90deg, rgba(157, 193, 131, 0.1) 0%, rgba(255, 253, 208, 0.2) 100%);">
+          <h3 class="text-lg font-semibold" style="color: #333333;">Quick Actions</h3>
+        </div>
+        <div class="p-4 space-y-2">
+          <a href="{% url 'mother_create' %}" class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-all hover:shadow-sm" style="hover:border-color: #9DC183;">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg" style="background-color: #98FF98;">
+              <svg class="h-6 w-6" style="color: #228B22;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
             </div>
-            <div class="ml-3 flex-1">
-              <p class="text-sm font-medium text-gray-900">Register Mother</p>
-              <p class="text-xs text-gray-500">Add new mother</p>
+            <div class="flex-1">
+              <p class="text-sm font-medium" style="color: #333333;">Register Mother</p>
+              <p class="text-xs text-gray-500">Add new mother record</p>
             </div>
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
           </a>
 
-          <a href="{% url 'anc_visit_list' %}" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
-            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-              <span class="text-xl">📋</span>
+          <a href="{% url 'anc_visit_list' %}" class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-all hover:shadow-sm">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg" style="background-color: #9DC183;">
+              <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
             </div>
-            <div class="ml-3 flex-1">
-              <p class="text-sm font-medium text-gray-900">Record Visit</p>
-              <p class="text-xs text-gray-500">Log ANC visit</p>
+            <div class="flex-1">
+              <p class="text-sm font-medium" style="color: #333333;">ANC Visits</p>
+              <p class="text-xs text-gray-500">View all visits</p>
             </div>
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
           </a>
 
-          <a href="{% url 'mother_list' %}" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
-            <div class="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
-              <span class="text-xl">🔍</span>
+          <a href="{% url 'mother_list' %}" class="flex items-center gap-3 rounded-lg border border-gray-200 p-3 transition-all hover:shadow-sm">
+            <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100">
+              <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
             </div>
-            <div class="ml-3 flex-1">
-              <p class="text-sm font-medium text-gray-900">Search Mothers</p>
+            <div class="flex-1">
+              <p class="text-sm font-medium" style="color: #333333;">Search Mothers</p>
               <p class="text-xs text-gray-500">Find records</p>
             </div>
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-          </a>
-
-          <a href="{% url 'nurse_dashboard' %}" class="flex items-center p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all group">
-            <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center group-hover:bg-amber-200 transition-colors">
-              <span class="text-xl">📊</span>
-            </div>
-            <div class="ml-3 flex-1">
-              <p class="text-sm font-medium text-gray-900">View Reports</p>
-              <p class="text-xs text-gray-500">Statistics</p>
-            </div>
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
           </a>
         </div>
       </div>
 
       <!-- Recent Activity -->
-      <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">Recent Activity</h2>
+      <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200 px-6 py-4" style="background: linear-gradient(90deg, rgba(157, 193, 131, 0.1) 0%, rgba(255, 253, 208, 0.2) 100%);">
+          <h3 class="text-lg font-semibold" style="color: #333333;">Recent Activity</h3>
         </div>
-        
-        <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+        <div class="max-h-80 overflow-y-auto">
           {% if recent_visits %}
-            {% for visit in recent_visits %}
-            <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
-              <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mt-0.5">
-                  <span class="text-sm">✓</span>
+            <ul class="divide-y divide-gray-200">
+              {% for visit in recent_visits %}
+              <li class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full" style="background-color: #98FF98;">
+                    <svg class="h-4 w-4" style="color: #228B22;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="truncate text-sm font-medium" style="color: #333333;">{{ visit.pregnancy.mother.full_name }}</p>
+                    <p class="text-sm text-gray-500">ANC-{{ visit.visit_number }} • Week {{ visit.pregnancy.gestational_age_weeks }}</p>
+                    <p class="text-xs text-gray-400">{{ visit.actual_visit_date|timesince }} ago</p>
+                  </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-gray-900 truncate">
-                    {{ visit.pregnancy.mother.full_name }}
-                  </p>
-                  <p class="text-sm text-gray-600 mt-0.5">
-                    ANC-{{ visit.visit_number }} • Week {{ visit.pregnancy.gestational_age_weeks }}
-                  </p>
-                  <p class="text-xs text-gray-400 mt-1">
-                    {{ visit.actual_visit_date|timesince }} ago
-                  </p>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
+              </li>
+              {% endfor %}
+            </ul>
           {% else %}
-            <div class="px-6 py-8 text-center">
-              <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
-                <span class="text-2xl">📝</span>
-              </div>
-              <p class="text-sm text-gray-500">No recent activity</p>
+            <div class="px-6 py-12 text-center">
+              <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              <p class="mt-2 text-sm text-gray-500">No recent activity</p>
             </div>
           {% endif %}
         </div>
       </div>
-
     </div>
   </div>
 

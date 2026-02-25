@@ -1,6 +1,6 @@
 <!-- templates/base.html -->
 <!DOCTYPE html>
-<html lang="en" class="h-full scroll-smooth">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,121 +10,301 @@
 
   <!-- Tailwind output -->
   <link rel="stylesheet" href="{% static 'css/output.css' %}">
+  
+  <!-- Custom styles -->
+  <style>
+    :root {
+      --sage-green: #9DC183;
+      --forest-green: #228B22;
+      --soft-mint: #98FF98;
+      --cream: #FFFDD0;
+      --charcoal: #333333;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* Sidebar transition */
+    .sidebar {
+      transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    }
+    
+    /* Smooth scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--sage-green);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--forest-green);
+    }
+  </style>
 
-  <!-- Optional: Inter font from Google Fonts (clean & modern) -->
+  <!-- Inter font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-gray-50 font-sans antialiased">
-
-  <!-- ==================== NAVBAR / TOP BAR ==================== -->
+<body class="h-full bg-gray-50 antialiased">
   {% if user.is_authenticated %}
-  <header class="bg-emerald-800 text-white shadow-lg">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-16 items-center justify-between">
-
-        <!-- Logo / Brand -->
-        <div class="flex items-center gap-3">
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xl">
-            M
-          </div>
-          <span class="text-lg font-semibold tracking-tight">
-            Maternal HRSS
-          </span>
+  <div class="flex h-screen overflow-hidden">
+    
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-gray-200 lg:translate-x-0 lg:static lg:inset-0 -translate-x-full">
+      <div class="flex h-full flex-col">
+        
+        <!-- Logo Section -->
+        <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
+          <a href="{% url 'nurse_dashboard' %}" class="flex items-center gap-3">
+            <!-- Mother + Child Logo SVG -->
+            <svg class="h-10 w-10" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Mother's head -->
+              <circle cx="28" cy="18" r="8" fill="#FFFDD0" stroke="#333333" stroke-width="2"/>
+              <!-- Mother's body -->
+              <path d="M20 28 Q18 38 20 48 L36 48 Q38 38 36 28 Z" fill="#FFFDD0" stroke="#333333" stroke-width="2"/>
+              <!-- Baby's head -->
+              <circle cx="40" cy="32" r="6" fill="#98FF98" stroke="#333333" stroke-width="1.5"/>
+              <!-- Baby's body -->
+              <ellipse cx="40" cy="40" rx="5" ry="6" fill="#98FF98" stroke="#333333" stroke-width="1.5"/>
+              <!-- Mother's arm holding baby -->
+              <path d="M32 32 Q36 28 40 30" stroke="#333333" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+            <div>
+              <span class="text-lg font-bold text-white tracking-tight">Maternal HRSS</span>
+              <p class="text-xs text-white/80">Health & Care</p>
+            </div>
+          </a>
+          
+          <!-- Close button (mobile) -->
+          <button onclick="toggleSidebar()" class="lg:hidden text-white hover:text-gray-200">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
 
-        <!-- Right side: User info + actions -->
-        <div class="flex items-center gap-6">
-
-          <!-- User name & role -->
-          <div class="hidden md:flex flex-col items-end text-sm">
-            <span class="font-medium">{{ user.get_full_name|default:user.username }}</span>
-            <span class="text-emerald-200 text-xs">
-              {{ user.get_role_display|default:"User" }}
-              {% if user.facility %}
-                • {{ user.facility.name|truncatechars:28 }}
-              {% endif %}
-            </span>
-          </div>
-
-          <!-- Mobile user pill -->
-          <div class="md:hidden bg-emerald-700 px-3 py-1.5 rounded-full text-sm">
-            {{ user.get_full_name|default:user.username|truncatechars:18 }}
-          </div>
-
-          <!-- Change password -->
-          <a href="{% url 'change_password' %}"
-             class="hidden md:inline-flex items-center gap-1.5 text-sm text-emerald-100 hover:text-white transition">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+          <!-- Dashboard -->
+          <a href="{% url 'nurse_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all {% if request.resolver_match.url_name == 'nurse_dashboard' %}bg-gradient-to-r from-sage-green/20 to-forest-green/10 text-forest-green border-l-4 border-forest-green{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{% if request.resolver_match.url_name == 'nurse_dashboard' %}background: linear-gradient(90deg, rgba(157, 193, 131, 0.2) 0%, rgba(34, 139, 34, 0.1) 100%); color: #228B22;{% endif %}">
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
             </svg>
-            <span>Password</span>
+            <span>Dashboard</span>
           </a>
 
-          <!-- Logout -->
-          <a href="{% url 'logout' %}"
-             class="inline-flex items-center gap-1.5 rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium hover:bg-emerald-900 transition">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          <!-- Mothers -->
+          <a href="{% url 'mother_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all {% if 'mother' in request.path %}bg-gradient-to-r from-sage-green/20 to-forest-green/10 text-forest-green border-l-4 border-forest-green{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{% if 'mother' in request.path %}background: linear-gradient(90deg, rgba(157, 193, 131, 0.2) 0%, rgba(34, 139, 34, 0.1) 100%); color: #228B22;{% endif %}">
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
-            <span>Logout</span>
+            <span>Mothers</span>
           </a>
+
+          <!-- ANC Visits -->
+          <a href="{% url 'anc_visit_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all {% if 'anc' in request.path or 'visit' in request.path %}bg-gradient-to-r from-sage-green/20 to-forest-green/10 text-forest-green border-l-4 border-forest-green{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{% if 'anc' in request.path or 'visit' in request.path %}background: linear-gradient(90deg, rgba(157, 193, 131, 0.2) 0%, rgba(34, 139, 34, 0.1) 100%); color: #228B22;{% endif %}">
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+            <span>ANC Visits</span>
+          </a>
+
+          <!-- Divider -->
+          <div class="pt-4 pb-2">
+            <div class="h-px bg-gray-200"></div>
+          </div>
+
+          <!-- Reports -->
+          <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all">
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Reports</span>
+          </a>
+
+          <!-- Settings -->
+          <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-all">
+            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <!-- User Profile Card -->
+        <div class="border-t border-gray-200 p-4">
+          <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50">
+            <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
+              {{ user.first_name.0|default:user.username.0|upper }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">{{ user.get_full_name|default:user.username }}</p>
+              <p class="text-xs text-gray-500 truncate">{{ user.get_role_display|default:"Nurse" }}</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </header>
-  {% endif %}
+    </aside>
 
-  <!-- ==================== MESSAGES BLOCK ==================== -->
-  {% if messages %}
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
-    {% for message in messages %}
-      <div class="mb-4 rounded-lg border-l-4 p-4 shadow-sm {% if message.tags == 'success' %}border-green-500 bg-green-50 text-green-800{% elif message.tags == 'error' %}border-red-500 bg-red-50 text-red-800{% elif message.tags == 'warning' %}border-yellow-500 bg-yellow-50 text-yellow-800{% else %}border-blue-500 bg-blue-50 text-blue-800{% endif %}">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            {% if message.tags == 'success' %}
-              <svg class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <div class="flex flex-1 flex-col overflow-hidden">
+      
+      <!-- Top Navbar -->
+      <header class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <!-- Mobile menu button -->
+        <button onclick="toggleSidebar()" class="lg:hidden -m-2.5 p-2.5 text-gray-700">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+
+        <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+          <!-- Breadcrumb / Page Title -->
+          <div class="flex items-center gap-x-4 lg:gap-x-6">
+            <h1 class="text-lg font-semibold text-gray-900">{% block page_title %}Dashboard{% endblock %}</h1>
+          </div>
+
+          <!-- Right side -->
+          <div class="ml-auto flex items-center gap-x-4 lg:gap-x-6">
+            
+            <!-- Facility Badge -->
+            {% if user.facility %}
+            <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium" style="background-color: #98FF98; color: #228B22;">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
               </svg>
-            {% elif message.tags == 'error' %}
-              <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-              </svg>
+              <span>{{ user.facility.name|truncatechars:20 }}</span>
+            </div>
             {% endif %}
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium">{{ message }}</p>
+
+            <!-- Notifications -->
+            <button class="relative -m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
+            </button>
+
+            <!-- User menu -->
+            <div class="relative">
+              <button onclick="toggleUserMenu()" class="flex items-center gap-x-2 p-1.5 rounded-lg hover:bg-gray-100">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
+                  {{ user.first_name.0|default:user.username.0|upper }}
+                </div>
+                <svg class="hidden lg:block h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              
+              <!-- Dropdown -->
+              <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 rounded-lg bg-white py-2 shadow-lg ring-1 ring-black ring-opacity-5">
+                <a href="{% url 'change_password' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                  </svg>
+                  Change Password
+                </a>
+                <div class="my-1 h-px bg-gray-200"></div>
+                <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                  </svg>
+                  Logout
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+      </header>
 
-  <!-- ==================== MAIN CONTENT AREA ==================== -->
-  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-    {% block content %}
-      <!-- Default content if child template doesn't override -->
-      <div class="text-center text-gray-500 py-12">
-        <h1 class="text-2xl font-bold">Content area</h1>
-        <p>Extend this block in child templates</p>
+      <!-- Messages -->
+      {% if messages %}
+      <div class="px-4 sm:px-6 lg:px-8 pt-4">
+        {% for message in messages %}
+          <div class="mb-4 rounded-lg border-l-4 p-4 shadow-sm {% if message.tags == 'success' %}border-green-500 bg-green-50 text-green-800{% elif message.tags == 'error' %}border-red-500 bg-red-50 text-red-800{% elif message.tags == 'warning' %}border-yellow-500 bg-yellow-50 text-yellow-800{% else %}border-blue-500 bg-blue-50 text-blue-800{% endif %}">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                {% if message.tags == 'success' %}
+                  <svg class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                {% elif message.tags == 'error' %}
+                  <svg class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                  </svg>
+                {% endif %}
+              </div>
+              <div class="ml-3">
+                <p class="text-sm font-medium">{{ message }}</p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
       </div>
+      {% endif %}
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-y-auto bg-gray-50">
+        <div class="px-4 sm:px-6 lg:px-8 py-6">
+          {% block content %}
+          <div class="text-center text-gray-500 py-12">
+            <h1 class="text-2xl font-bold">Content area</h1>
+            <p>Extend this block in child templates</p>
+          </div>
+          {% endblock %}
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div id="sidebarOverlay" class="hidden fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden" onclick="toggleSidebar()"></div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    }
+
+    function toggleUserMenu() {
+      const menu = document.getElementById('userMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('userMenu');
+      const button = event.target.closest('button[onclick="toggleUserMenu()"]');
+      if (!button && !menu.contains(event.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+  </script>
+
+  {% else %}
+  <!-- Not authenticated - show login page -->
+  <main class="flex-1">
+    {% block content %}
     {% endblock %}
   </main>
-
-  <!-- ==================== FOOTER ==================== -->
-  <footer class="mt-auto border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      Maternal Health Record & Reminder System • © {{ 'now'|date:"Y" }} •
-      
-    </div>
-  </footer>
+  {% endif %}
 
   {% block extra_js %}{% endblock %}
 </body>
 </html>
-
