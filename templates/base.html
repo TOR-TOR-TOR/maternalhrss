@@ -59,6 +59,7 @@
 </head>
 
 <body class="h-full bg-gray-50 antialiased">
+
   {% if user.is_authenticated %}
   <div class="flex h-screen overflow-hidden">
     
@@ -261,10 +262,7 @@
       <main class="flex-1 overflow-y-auto bg-gray-50">
         <div class="px-4 sm:px-6 lg:px-8 py-6">
           {% block content %}
-          <div class="text-center text-gray-500 py-12">
-            <h1 class="text-2xl font-bold">Content area</h1>
-            <p>Extend this block in child templates</p>
-          </div>
+          <!-- All authenticated pages extend and override this block -->
           {% endblock %}
         </div>
       </main>
@@ -273,6 +271,15 @@
 
   <!-- Sidebar overlay (mobile) -->
   <div id="sidebarOverlay" class="hidden fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden" onclick="toggleSidebar()"></div>
+
+  {% else %}
+  <!-- ==================== NOT AUTHENTICATED - FULL SCREEN CENTERED LAYOUT ==================== -->
+  <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    {% block content %}
+    <!-- Login, password change, password reset pages override this block -->
+    {% endblock %}
+  </div>
+  {% endif %}
 
   <script>
     function toggleSidebar() {
@@ -296,19 +303,6 @@
       }
     });
   </script>
-
-  {% else %}
-  
-  <!-- ==================== NOT AUTHENTICATED - LOGIN PAGE ==================== -->
-  {% block content %}
-  <main class="flex-1">
-    <div class="text-center text-gray-500 py-12">
-      <h1 class="text-2xl font-bold">Please log in</h1>
-    </div>
-  </main>
-  {% endblock %}
-  
-  {% endif %}
 
   {% block extra_js %}{% endblock %}
 </body>
