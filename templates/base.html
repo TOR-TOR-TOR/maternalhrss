@@ -298,17 +298,18 @@
   </script>
 
   {% else %}
-  
-  <!-- ==================== NOT AUTHENTICATED - LOGIN PAGE ==================== -->
-  {% block content %}
-  <main class="flex-1">
-    <div class="text-center text-gray-500 py-12">
-      <h1 class="text-2xl font-bold">Please log in</h1>
-    </div>
-  </main>
-  {% endblock %}
-  
-  {% endif %}
+
+<main class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-md p-6">
+
+    <!-- Public pages like login will render here -->
+    {{ block.super }}
+
+  </div>
+</main>
+
+{% endif %}
+
 
   {% block extra_js %}{% endblock %}
 </body>
