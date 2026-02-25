@@ -298,11 +298,16 @@
   </script>
 
   {% else %}
-  <!-- Not authenticated - show login page -->
+  
+  <!-- ==================== NOT AUTHENTICATED - LOGIN PAGE ==================== -->
+  {% block content %}
   <main class="flex-1">
-    {% block content %}
-    {% endblock %}
+    <div class="text-center text-gray-500 py-12">
+      <h1 class="text-2xl font-bold">Please log in</h1>
+    </div>
   </main>
+  {% endblock %}
+  
   {% endif %}
 
   {% block extra_js %}{% endblock %}
