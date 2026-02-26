@@ -58,6 +58,7 @@
 <body class="h-full bg-gray-50 antialiased">
 
   {% if user.is_authenticated %}
+  <!-- ==================== AUTHENTICATED USER LAYOUT ==================== -->
   <div class="flex h-screen overflow-hidden">
 
     <!-- SIDEBAR -->
@@ -245,7 +246,7 @@
       </div>
       {% endif %}
 
-      <!-- SINGLE CONTENT BLOCK FOR AUTHENTICATED USERS -->
+      <!-- Main content for authenticated users -->
       <main class="flex-1 overflow-y-auto bg-gray-50">
         <div class="px-4 sm:px-6 lg:px-8 py-6">
           {% block content %}{% endblock %}
@@ -259,7 +260,7 @@
 
   {% else %}
 
-  <!-- 🔥 LOGIN / GUEST LAYOUT - THIS WAS MISSING! -->
+  <!-- ==================== GUEST / LOGIN LAYOUT ==================== -->
   <div class="min-h-screen flex flex-col">
     <!-- Simple header for login page -->
     <header class="bg-white border-b border-gray-200">
@@ -291,7 +292,7 @@
     </div>
     {% endif %}
 
-    <!-- Content area for login/register pages -->
+    <!-- Content area for login/register pages - NO DUPLICATE BLOCK! -->
     <main class="flex-1">
       {% block content %}{% endblock %}
     </main>
