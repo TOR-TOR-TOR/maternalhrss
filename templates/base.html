@@ -7,10 +7,8 @@
 
   {% load static %}
 
-  <!-- Tailwind output -->
   <link rel="stylesheet" href="{% static 'css/output.css' %}">
 
-  <!-- Custom styles -->
   <style>
     :root {
       --sage-green: #9DC183;
@@ -19,32 +17,12 @@
       --cream: #FFFDD0;
       --charcoal: #333333;
     }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-
-    .sidebar {
-      transition: transform 0.3s ease-in-out;
-    }
-
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--sage-green);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--forest-green);
-    }
+    body {font-family: 'Inter', system-ui, -apple-system, sans-serif;}
+    .sidebar {transition: transform 0.3s ease-in-out;}
+    ::-webkit-scrollbar {width: 8px; height: 8px;}
+    ::-webkit-scrollbar-track {background: #f1f1f1;}
+    ::-webkit-scrollbar-thumb {background: var(--sage-green); border-radius: 4px;}
+    ::-webkit-scrollbar-thumb:hover {background: var(--forest-green);}
   </style>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -63,8 +41,6 @@
   <!-- SIDEBAR -->
   <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-gray-200 lg:translate-x-0 lg:static -translate-x-full">
     <div class="flex h-full flex-col">
-
-      <!-- Logo -->
       <div class="flex h-16 items-center justify-between px-6 border-b border-gray-200" style="background: linear-gradient(135deg, #9DC183 0%, #228B22 100%);">
         <a href="{% url 'nurse_dashboard' %}" class="flex items-center gap-3">
           <svg class="h-10 w-10" viewBox="0 0 64 64" fill="none">
@@ -86,7 +62,6 @@
         </button>
       </div>
 
-      <!-- Nav -->
       <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
         <a href="{% url 'nurse_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium {% if request.resolver_match.url_name == 'nurse_dashboard' %}bg-green-50 text-green-800 border-l-4 border-green-600{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +90,6 @@
         </a>
       </nav>
 
-      <!-- User -->
       <div class="border-t p-4">
         <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gray-50">
           <div class="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm bg-gradient-to-br from-green-500 to-green-700">
@@ -130,10 +104,7 @@
     </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="flex flex-1 flex-col overflow-hidden">
-
-    <!-- Navbar -->
     <header class="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-white px-4 shadow-sm sm:px-6 lg:px-8">
       <button onclick="toggleSidebar()" class="lg:hidden -m-2.5 p-2.5 text-gray-700">
         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -184,7 +155,6 @@
       </div>
     </header>
 
-    <!-- Messages -->
     {% if messages %}
     <div class="px-4 sm:px-6 lg:px-8 pt-4">
       {% for message in messages %}
@@ -195,10 +165,9 @@
     </div>
     {% endif %}
 
-    <!-- Content -->
     <main class="flex-1 overflow-y-auto bg-gray-50">
       <div class="px-4 sm:px-6 lg:px-8 py-6">
-        {% block content %}{% endblock %}
+        {% block content_wrapper %}{% endblock %}
       </div>
     </main>
   </div>
@@ -239,7 +208,7 @@
   {% endif %}
 
   <main class="flex-1">
-    {% block content %}{% endblock %}
+    {% block content_wrapper %}{% endblock %}
   </main>
 
   <footer class="border-t bg-white py-4 text-center text-sm text-gray-500">
@@ -248,6 +217,9 @@
 </div>
 
 {% endif %}
+
+<!-- THE SINGLE CONTENT BLOCK - OUTSIDE IF/ELSE -->
+{% block content %}{% endblock %}
 
 <script>
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('-translate-x-full');document.getElementById('sidebarOverlay').classList.toggle('hidden')}
