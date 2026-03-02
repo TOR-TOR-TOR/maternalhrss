@@ -1,301 +1,234 @@
 # apps/users/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q, Count
-from django.utils import timezone
-from datetime import timedelta
-from apps.mothers.models import Mother, Pregnancy
-from apps.anc.models import ANCVisit
-from apps.reminders.models import SentReminder
-from django.contrib.auth import (
-    login, logout, authenticate,
-    update_session_auth_hash,
-    get_user_model
-)
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.forms import PasswordChangeForm
-from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views import View
+
 from .forms import (
+    FacilityForm,
+    CustomUserCreationForm,
+    CustomUserUpdateForm,
     LoginForm,
-    PasswordResetForm,
-    UserRegistrationForm,  # assuming you have this form
 )
-from .models import CustomUser
-
-User = get_user_model()
+from .models import CustomUser, Facility
 
 
-def user_login(request):
+# ─────────────────────────────────────────────
+# Access Control — single source of truth
+# ─────────────────────────────────────────────
+
+ROLE_REDIRECTS = {
+    'NURSE':   'users:facility_list',
+    'MANAGER': 'users:facility_list',
+    'MOH':     'users:user_list',
+}
+
+
+def role_required(*roles):
     """
-    Login view for all users (Nurses, Managers, MOH Admins).
-    Redirects to role-specific dashboard after successful login.
+    Decorator for function-based views.
+    Usage: @role_required('MOH') or @role_required('MOH', 'MANAGER')
     """
-    if request.user.is_authenticated:
-        return redirect('dashboard')
+    def decorator(view_func):
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if request.user.role not in roles:
+                messages.error(request, "You do not have permission to access that page.")
+                return redirect(_role_home(request.user))
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
+
+class RoleRequiredMixin:
+    """
+    Mixin for class-based views.
+    Set allowed_roles = ['MOH'] on the view class.
+    """
+    allowed_roles = []
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.role not in self.allowed_roles:
+            messages.error(request, "You do not have permission to access that page.")
+            return redirect(_role_home(request.user))
+        return super().dispatch(request, *args, **kwargs)
+
+
+def _role_home(user):
+    """Return the named URL for a user's home based on their role."""
+    return ROLE_REDIRECTS.get(user.role, 'users:login')
+
+
+# ─────────────────────────────────────────────
+# Shared Helpers
+# ─────────────────────────────────────────────
+
+def _handle_form(request, form, template, context=None):
+    """
+    DRY POST/GET handler for any ModelForm or Form.
+    Returns (redirect_response | None, form).
+    Caller decides where to redirect on success.
+    """
     if request.method == 'POST':
+        if form.is_valid():
+            return True, form  # caller calls form.save() and redirects
+    context = context or {}
+    context['form'] = form
+    return False, form
+
+
+def _get_scoped_users(user):
+    """Return user queryset scoped to the requesting user's role."""
+    if user.role == 'MOH':
+        return CustomUser.objects.select_related('facility').all()
+    return CustomUser.objects.select_related('facility').filter(facility=user.facility)
+
+
+def _get_scoped_facilities(user):
+    """Return facility queryset scoped to the requesting user's role."""
+    if user.role == 'MOH':
+        return Facility.objects.all()
+    return Facility.objects.filter(pk=user.facility_id)
+
+
+# ─────────────────────────────────────────────
+# Auth Views
+# ─────────────────────────────────────────────
+
+class LoginView(View):
+    template_name = 'users/login.html'
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect(_role_home(request.user))
+        return render(request, self.template_name, {'form': LoginForm()})
+
+    def post(self, request):
         form = LoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                if user.is_active_user and user.is_active:
-                    login(request, user)
-                    messages.success(request, f'Welcome back, {user.get_full_name()}!')
-                    # Role-based redirect
-                    if user.role == 'NURSE':
-                        return redirect('nurse_dashboard')
-                    elif user.role == 'MANAGER':
-                        return redirect('manager_dashboard')
-                    elif user.role == 'MOH':
-                        return redirect('moh_dashboard')
-                    return redirect('dashboard')
-                else:
-                    messages.error(request, 'Your account has been deactivated. Contact administrator.')
-            else:
-                messages.error(request, 'Invalid username or password.')
-    else:
-        form = LoginForm()
-
-    context = {
-        'form': form,
-        'page_title': 'Sign In - Maternal Health System'
-    }
-    return render(request, 'users/login.html', context)
-
-
-@login_required
-def user_logout(request):
-    """Logout the current user and redirect to login page."""
-    full_name = request.user.get_full_name()
-    logout(request)
-    messages.success(request, f'Goodbye, {full_name}! You have been logged out.')
-    return redirect('login')
-
-
-@login_required
-def change_password(request):
-    """Allow logged-in user to change their own password."""
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  # Prevent logout after change
-            messages.success(request, 'Your password has been updated successfully!')
-            return redirect('password_change_done')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = PasswordChangeForm(request.user)
-
-    context = {
-        'form': form,
-        'page_title': 'Change Your Password'
-    }
-    return render(request, 'users/change_password.html', context)
-
-
-@login_required
-def password_change_done(request):
-    """Success page after user changes their own password."""
-    context = {
-        'page_title': 'Password Changed Successfully'
-    }
-    return render(request, 'users/password_change_done.html', context)
-
-
-@login_required
-def password_reset_request(request):
-    """Allow MANAGER or MOH to reset password for another user."""
-    if request.user.role not in ['MANAGER', 'MOH']:
-        messages.error(request, 'You do not have permission to reset passwords.')
-        return redirect('dashboard')
-
-    if request.method == 'POST':
-        form = PasswordResetForm(request.POST, current_user=request.user)
-        if form.is_valid():
-            user = form.save()
-            messages.success(
+            user = authenticate(
                 request,
-                f'Password reset successfully for {user.get_full_name()}. '
-                f'Communicate the new password securely.'
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password'],
             )
-            return redirect('password_reset_done')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = PasswordResetForm(current_user=request.user)
+            if user and user.is_active_user:
+                login(request, user)
+                return redirect(_role_home(user))
+            messages.error(request, "Invalid credentials or account disabled.")
+        return render(request, self.template_name, {'form': form})
 
-    context = {
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('users:login')
+
+
+# ─────────────────────────────────────────────
+# User Views
+# ─────────────────────────────────────────────
+
+@role_required('MOH')
+def register_view(request):
+    form = CustomUserCreationForm(request.POST or None)
+    success, form = _handle_form(request, form, 'users/register.html')
+    if success:
+        form.save()
+        messages.success(request, "User registered successfully.")
+        return redirect('users:user_list')
+    return render(request, 'users/register.html', {'form': form, 'form_title': 'Register New User'})
+
+
+@login_required
+def profile_view(request):
+    form = CustomUserUpdateForm(request.POST or None, instance=request.user)
+    success, form = _handle_form(request, form, 'users/profile.html')
+    if success:
+        form.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect('users:profile')
+    return render(request, 'users/profile.html', {'form': form, 'form_title': 'Edit Profile'})
+
+
+@role_required('MOH', 'MANAGER')
+def user_list_view(request):
+    users = _get_scoped_users(request.user)
+    return render(request, 'users/user_list.html', {'users': users})
+
+
+@role_required('MOH', 'MANAGER')
+def user_detail_view(request, pk):
+    qs = _get_scoped_users(request.user)
+    user = get_object_or_404(qs, pk=pk)
+    return render(request, 'users/user_detail.html', {'target_user': user})
+
+
+@role_required('MOH', 'MANAGER')
+def user_update_view(request, pk):
+    qs = _get_scoped_users(request.user)
+    target = get_object_or_404(qs, pk=pk)
+    form = CustomUserUpdateForm(request.POST or None, instance=target)
+    success, form = _handle_form(request, form, 'users/user_form.html')
+    if success:
+        form.save()
+        messages.success(request, f"{target.get_full_name()} updated successfully.")
+        return redirect('users:user_detail', pk=target.pk)
+    return render(request, 'users/user_form.html', {
         'form': form,
-        'page_title': 'Reset User Password'
-    }
-    return render(request, 'users/password_reset.html', context)
+        'form_title': f'Edit {target.get_full_name()}',
+        'target_user': target,
+    })
+
+
+# ─────────────────────────────────────────────
+# Facility Views
+# ─────────────────────────────────────────────
+
+@login_required
+def facility_list_view(request):
+    facilities = _get_scoped_facilities(request.user)
+    return render(request, 'users/facility_list.html', {'facilities': facilities})
 
 
 @login_required
-def password_reset_done(request):
-    """Success page after password reset by manager/MOH."""
-    context = {
-        'page_title': 'Password Reset Successfully'
-    }
-    return render(request, 'users/password_reset_done.html', context)
+def facility_detail_view(request, pk):
+    qs = _get_scoped_facilities(request.user)
+    facility = get_object_or_404(qs, pk=pk)
+    return render(request, 'users/facility_detail.html', {'facility': facility})
 
 
-@login_required
-def user_list(request):
-    """
-    List all users (filtered by role/facility).
-    Only visible to MANAGER (own facility) and MOH (all).
-    """
-    if request.user.role not in ['MANAGER', 'MOH']:
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
-
-    # Basic filtering
-    users = User.objects.all().select_related('facility').order_by('role', 'last_name')
-
-    if request.user.role == 'MANAGER':
-        users = users.filter(facility=request.user.facility)
-
-    context = {
-        'users': users,
-        'page_title': 'User Management'
-    }
-    return render(request, 'users/user_list.html', context)
+@role_required('MOH')
+def facility_create_view(request):
+    form = FacilityForm(request.POST or None)
+    success, form = _handle_form(request, form, 'users/facility_form.html')
+    if success:
+        facility = form.save()
+        messages.success(request, f"{facility.name} created successfully.")
+        return redirect('users:facility_detail', pk=facility.pk)
+    
 
 
-@login_required
-def user_create(request):
-    """
-    Create a new user account.
-    Only allowed for MANAGER (creates in own facility) and MOH (any facility).
-    """
-    if request.user.role not in ['MANAGER', 'MOH']:
-        messages.error(request, 'You do not have permission to create users.')
-        return redirect('dashboard')
+@role_required('MOH', 'MANAGER')
+def facility_update_view(request, pk):
+    qs = _get_scoped_facilities(request.user)
+    facility = get_object_or_404(qs, pk=pk)
 
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            # If manager → force facility
-            if request.user.role == 'MANAGER':
-                user.facility = request.user.facility
-            user.save()
-            messages.success(request, f'User {user.get_full_name()} created successfully.')
-            return redirect('user_list')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = UserRegistrationForm()
+    # MANAGER can only edit their own facility
+    if request.user.role == 'MANAGER' and request.user.facility_id != facility.pk:
+        messages.error(request, "You can only edit your own facility.")
+        return redirect('users:facility_detail', pk=facility.pk)
 
-        # Pre-set facility for managers
-        if request.user.role == 'MANAGER':
-            form.fields['facility'].initial = request.user.facility
-            form.fields['facility'].disabled = True
-
-    context = {
+    form = FacilityForm(request.POST or None, instance=facility)
+    success, form = _handle_form(request, form, 'users/facility_form.html')
+    if success:
+        form.save()
+        messages.success(request, f"{facility.name} updated successfully.")
+        return redirect('users:facility_detail', pk=facility.pk)
+    return render(request, 'users/facility_form.html', {
         'form': form,
-        'page_title': 'Create New User'
-    }
-    return render(request, 'users/user_create.html', context)
-
-
-@login_required
-def dashboard(request):
-    """Central redirect to role-specific dashboard."""
-    role_redirects = {
-        'NURSE': 'nurse_dashboard',
-        'MANAGER': 'manager_dashboard',
-        'MOH': 'moh_dashboard',
-    }
-    redirect_to = role_redirects.get(request.user.role, 'dashboard')
-    return redirect(redirect_to)
-
-
-# Role-specific dashboard placeholders (to be expanded later)
-@login_required
-def nurse_dashboard(request):
-    if request.user.role != 'NURSE':
-        messages.error(request, 'Access denied. Nurses only.')
-        return redirect('dashboard')
-
-    # Get nurse's facility
-    facility = request.user.facility
-    
-    # Stats calculations
-    today = timezone.now().date()
-    
-    # Total active mothers in facility
-    active_mothers = Mother.objects.filter(
-        facility=facility,
-        pregnancies__status='ACTIVE'
-    ).distinct().count()
-    
-    # Today's scheduled visits (using scheduled_date, NOT visit_date)
-    todays_visits = ANCVisit.objects.filter(
-        pregnancy__mother__facility=facility,
-        scheduled_date=today,
-        attended=False
-    ).select_related('pregnancy__mother', 'pregnancy').order_by('scheduled_date')
-    
-    # High risk cases
-    high_risk_count = Pregnancy.objects.filter(
-        mother__facility=facility,
-        status='ACTIVE',
-        risk_level='HIGH'
-    ).count()
-    
-    # Pending follow-ups (visits overdue by 7+ days)
-    # Using scheduled_date, NOT visit_date
-    pending_followups = ANCVisit.objects.filter(
-        pregnancy__mother__facility=facility,
-        scheduled_date__lt=today - timedelta(days=7),
-        attended=False,
-        missed=False
-    ).count()
-    
-    # Recent activity (last 5 completed visits)
-    # Using actual_visit_date for ordering, NOT visit_date
-    recent_visits = ANCVisit.objects.filter(
-        pregnancy__mother__facility=facility,
-        attended=True,
-        actual_visit_date__isnull=False
-    ).select_related('pregnancy__mother', 'pregnancy').order_by('-actual_visit_date')[:5]
-
-    context = {
-        'page_title': 'Nurse Dashboard',
-        'user': request.user,
-        'today_formatted': timezone.now().strftime('%A, %d %B %Y'),
-        'stats': {
-            'active_mothers': active_mothers,
-            'todays_visits_count': todays_visits.count(),
-            'high_risk_count': high_risk_count,
-            'pending_followups': pending_followups,
-        },
-        'todays_visits': todays_visits,
-        'recent_visits': recent_visits,
-    }
-    return render(request, 'dashboards/nurse_dashboard.html', context)
-
-
-  
-@login_required
-def manager_dashboard(request):
-    if request.user.role != 'MANAGER':
-        messages.error(request, 'Access denied. Managers only.')
-        return redirect('dashboard')
-    context = {'page_title': 'Facility Manager Dashboard', 'user': request.user}
-    return render(request, 'dashboards/manager_dashboard.html', context)
-
-
-@login_required
-def moh_dashboard(request):
-    if request.user.role != 'MOH':
-        messages.error(request, 'Access denied. MOH only.')
-        return redirect('dashboard')
-    context = {'page_title': 'MOH Dashboard', 'user': request.user}
-    return render(request, 'dashboards/moh_dashboard.html', context)
+        'form_title': f'Edit {facility.name}',
+        'facility': facility,
+    })

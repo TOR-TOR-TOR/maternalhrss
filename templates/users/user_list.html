@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block page_heading %}
+  {% if user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="page-card">
+
+  <!-- Header row -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="font-display font-semibold text-xl text-gray-800">
+      {% if request.user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}
+    </h2>
+    {% if request.user.role == 'MOH' %}
+    <a href="{% url 'users:register' %}"
+       class="btn btn-sm text-white border-0 rounded-xl gap-2"
+       style="background:#0f6b4f">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Register User
+    </a>
+    {% endif %}
+  </div>
+
+  {% if users %}
+  <div class="overflow-x-auto">
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+          <th class="font-semibold py-3">Name</th>
+          <th class="font-semibold py-3">Role</th>
+          <th class="font-semibold py-3">Facility</th>
+          <th class="font-semibold py-3">Phone</th>
+          <th class="font-semibold py-3">Status</th>
+          <th class="font-semibold py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for u in users %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="py-3">
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder">
+                <div class="rounded-full w-8 text-white text-xs font-bold"
+                     style="background:#0f6b4f">
+                  <span>{{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}</span>
+                </div>
+              </div>
+              <div>
+                <p class="font-medium text-gray-800 text-sm">{{ u.get_full_name }}</p>
+                <p class="text-gray-400 text-xs">{{ u.username }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3">
+            <span class="badge badge-sm
+              {% if u.role == 'MOH' %}bg-purple-100 text-purple-700
+              {% elif u.role == 'MANAGER' %}bg-blue-100 text-blue-700
+              {% else %}bg-green-100 text-green-700{% endif %}">
+              {{ u.get_role_display }}
+            </span>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ u.get_facility_name }}</td>
+          <td class="py-3 text-sm text-gray-600">{{ u.phone_number }}</td>
+          <td class="py-3">
+            {% if u.is_active_user %}
+              <span class="badge badge-xs bg-green-100 text-green-700">Active</span>
+            {% else %}
+              <span class="badge badge-xs bg-red-100 text-red-600">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-right">
+            <a href="{% url 'users:user_detail' u.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-500">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16 text-gray-400">
+    <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+    <p class="text-sm">No users found.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

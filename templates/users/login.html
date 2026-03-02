@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e6f4ef] via-white to-[#fef3c7] px-4">
+  <div class="w-full max-w-md">
+
+    <!-- Logo mark -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl shadow-md mb-4" style="background:#0f6b4f">
+        <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+      </div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">MamaHealth KE</h1>
+      <p class="text-gray-500 text-sm mt-1">Kenya Maternal Health System</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <h2 class="font-display font-semibold text-lg text-gray-800 mb-6">Sign in to your account</h2>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="form-control mb-4">
+          <label class="label pb-1.5">
+            <span class="label-text text-gray-700 font-medium">Username</span>
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.username.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <div class="form-control mb-6">
+          <label class="label pb-1.5">
+            <span class="label-text text-gray-700 font-medium">Password</span>
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.password.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <button type="submit"
+          class="btn w-full text-white font-semibold rounded-xl border-0 shadow-sm"
+          style="background:#0f6b4f">
+          Sign In
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-xs text-gray-400 mt-6">
+      Kenya Ministry of Health &mdash; Authorized personnel only
+    </p>
+  </div>
+</div>
+{% endblock %}

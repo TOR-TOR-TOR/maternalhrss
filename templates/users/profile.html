@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block page_heading %}My Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+
+  <!-- Profile header -->
+  <div class="page-card mb-6 flex items-center gap-5">
+    <div class="avatar placeholder">
+      <div class="rounded-full w-16 text-white text-xl font-bold"
+           style="background:#0f6b4f">
+        <span>{{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+      </div>
+    </div>
+    <div>
+      <h2 class="font-display font-semibold text-xl text-gray-900">{{ user.get_full_name }}</h2>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="badge badge-sm
+          {% if user.role == 'MOH' %}bg-purple-100 text-purple-700
+          {% elif user.role == 'MANAGER' %}bg-blue-100 text-blue-700
+          {% else %}bg-green-100 text-green-700{% endif %}">
+          {{ user.get_role_display }}
+        </span>
+        <span class="text-gray-400 text-sm">{{ user.get_facility_name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit form -->
+  <div class="page-card">
+    <h3 class="font-display font-semibold text-lg text-gray-800 mb-6">{{ form_title }}</h3>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "users/_form_fields.html" with form=form %}
+
+      <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-100">
+        <button type="submit"
+          class="btn text-white border-0 shadow-sm px-6 rounded-xl"
+          style="background:#0f6b4f">
+          Update Profile
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

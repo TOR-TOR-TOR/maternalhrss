@@ -2,22 +2,25 @@
 from django.urls import path
 from . import views
 
+app_name = 'users'
+
 urlpatterns = [
-    # Authentication
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    
-    # Password Management
-    path('password/change/', views.change_password, name='change_password'),
-    path('password/reset/', views.password_reset_request, name='password_reset'),
-    
-    # Dashboard (redirects to role-specific dashboard)
-    path('dashboard/', views.dashboard, name='dashboard'),
-    
-    # Role-specific dashboards (placeholders)
-    path('dashboard/nurse/', views.nurse_dashboard, name='nurse_dashboard'),
-    path('dashboard/manager/', views.manager_dashboard, name='manager_dashboard'),
-    path('dashboard/moh/', views.moh_dashboard, name='moh_dashboard'),
+
+    # ── Auth ──────────────────────────────────────────
+    path('auth/login/',  views.LoginView.as_view(), name='login'),
+    path('auth/logout/', views.logout_view,          name='logout'),
+
+    # ── Users ─────────────────────────────────────────
+    path('users/',                  views.user_list_view,   name='user_list'),
+    path('users/register/',         views.register_view,    name='register'),
+    path('users/profile/',          views.profile_view,     name='profile'),
+    path('users/<int:pk>/',         views.user_detail_view, name='user_detail'),
+    path('users/<int:pk>/edit/',    views.user_update_view, name='user_update'),
+
+    # ── Facilities ────────────────────────────────────
+    path('facilities/',                  views.facility_list_view,   name='facility_list'),
+    path('facilities/create/',           views.facility_create_view, name='facility_create'),
+    path('facilities/<int:pk>/',         views.facility_detail_view, name='facility_detail'),
+    path('facilities/<int:pk>/edit/',    views.facility_update_view, name='facility_update'),
+
 ]
-
-

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Facilities{% endblock %}
+{% block page_heading %}Facilities{% endblock %}
+
+{% block content %}
+<div class="page-card">
+
+  <!-- Header row -->
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="font-display font-semibold text-xl text-gray-800">Facilities</h2>
+    {% if request.user.role == 'MOH' %}
+    <a href="{% url 'users:facility_create' %}"
+       class="btn btn-sm text-white border-0 rounded-xl gap-2"
+       style="background:#0f6b4f">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Facility
+    </a>
+    {% endif %}
+  </div>
+
+  {% if facilities %}
+  <div class="overflow-x-auto">
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+          <th class="font-semibold py-3">Name</th>
+          <th class="font-semibold py-3">Level</th>
+          <th class="font-semibold py-3">County</th>
+          <th class="font-semibold py-3">Sub-County</th>
+          <th class="font-semibold py-3">Services</th>
+          <th class="font-semibold py-3">Status</th>
+          <th class="font-semibold py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for facility in facilities %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="py-3">
+            <p class="font-medium text-gray-800 text-sm">{{ facility.name }}</p>
+            {% if facility.mfl_code %}
+              <p class="text-gray-400 text-xs">MFL: {{ facility.mfl_code }}</p>
+            {% endif %}
+          </td>
+          <td class="py-3">
+            <span class="badge badge-sm bg-teal-50 text-teal-700 border-teal-100 whitespace-nowrap">
+              L{{ facility.get_level_number }}
+            </span>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ facility.county }}</td>
+          <td class="py-3 text-sm text-gray-600">{{ facility.sub_county }}</td>
+          <td class="py-3">
+            <div class="flex flex-wrap gap-1">
+              {% if facility.is_24_hours %}
+                <span class="badge badge-xs bg-amber-50 text-amber-700">24hr</span>
+              {% endif %}
+              {% if facility.has_maternity_services %}
+                <span class="badge badge-xs bg-pink-50 text-pink-700">Maternity</span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="py-3">
+            {% if facility.is_active %}
+              <span class="badge badge-xs bg-green-100 text-green-700">Active</span>
+            {% else %}
+              <span class="badge badge-xs bg-red-100 text-red-600">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-right">
+            <a href="{% url 'users:facility_detail' facility.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-500">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-16 text-gray-400">
+    <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+    </svg>
+    <p class="text-sm">No facilities found.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
