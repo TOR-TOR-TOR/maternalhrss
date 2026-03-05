@@ -1,0 +1,67 @@
+{# templates/reminders/template_list.html #}
+{% extends "base.html" %}
+{% block title %}SMS Templates{% endblock %}
+{% block page_heading %}SMS Templates{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">SMS Templates</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ templates|length }} template{{ templates|length|pluralize }} configured</p>
+    </div>
+    <a href="{% url 'reminders:list' %}"
+       class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">
+      View SMS Log
+    </a>
+  </div>
+
+  <!-- ── Templates grid ─────────────────────────────────────── -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for template in templates %}
+    <a href="{% url 'reminders:template_detail' template.pk %}"
+       class="page-card hover:shadow-md transition-shadow block group">
+
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <p class="font-display font-semibold text-sm text-gray-800 group-hover:text-[#0f6b4f] transition-colors">
+            {{ template.name }}
+          </p>
+          <p class="text-xs text-gray-400 mt-0.5">{{ template.get_reminder_type_display }}</p>
+        </div>
+        <span class="badge badge-sm border-0 flex-shrink-0
+          {% if template.is_active %}bg-green-50 text-green-700{% else %}bg-gray-100 text-gray-400{% endif %}">
+          {% if template.is_active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </div>
+
+      <!-- Message preview -->
+      <p class="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed line-clamp-3">
+        {{ template.message_template|truncatechars:120 }}
+      </p>
+
+      <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+        <span>Sends {{ template.days_before }} day{{ template.days_before|pluralize }} before</span>
+        <span>·</span>
+        <span>{{ template.send_time|time:"H:i" }}</span>
+        <span>·</span>
+        <span>{{ template.sent_reminders.count }} sent</span>
+      </div>
+
+    </a>
+    {% empty %}
+    <div class="md:col-span-2 text-center py-16 text-gray-400 page-card">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      <p class="text-sm">No SMS templates configured yet.</p>
+      <p class="text-xs mt-1">Add templates via Django Admin.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

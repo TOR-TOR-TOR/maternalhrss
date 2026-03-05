@@ -1,0 +1,95 @@
+{# templates/delivery/delivery_list.html #}
+{% extends "base.html" %}
+{% block title %}Deliveries{% endblock %}
+{% block page_heading %}Deliveries{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">Deliveries</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ deliveries|length }} record{{ deliveries|length|pluralize }} shown</p>
+    </div>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────── -->
+  <div class="page-card p-0 overflow-hidden">
+    {% if deliveries %}
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Mother</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Date</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Type</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Outcome</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Babies</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Gestation</th>
+          <th class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for delivery in deliveries %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder flex-shrink-0">
+                <div class="rounded-full w-8 text-white text-xs font-bold"
+                     style="background:#0f6b4f">
+                  <span>{{ delivery.mother.first_name|slice:":1" }}{{ delivery.mother.last_name|slice:":1" }}</span>
+                </div>
+              </div>
+              <div>
+                <p class="font-medium text-sm text-gray-800">{{ delivery.mother.full_name }}</p>
+                <p class="text-xs text-gray-400">{{ delivery.pregnancy.gravida_para_display }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3 text-sm text-gray-600">
+            {{ delivery.delivery_date|date:"d M Y" }}
+            <span class="block text-xs text-gray-400">{{ delivery.delivery_time|time:"H:i" }}</span>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ delivery.get_delivery_type_display }}</td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0 font-medium
+              {% if delivery.delivery_outcome == 'LIVE' %}bg-green-50 text-green-700
+              {% elif delivery.delivery_outcome == 'STILLBIRTH' %}bg-red-50 text-red-600
+              {% else %}bg-amber-50 text-amber-600{% endif %}">
+              {{ delivery.get_delivery_outcome_display }}
+            </span>
+            {% if delivery.complications %}
+            <span class="badge badge-sm bg-red-50 text-red-600 border-0 ml-1">Complications</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ delivery.number_of_babies }}</td>
+          <td class="py-3 text-sm text-gray-600">
+            {% if delivery.gestational_age_at_delivery %}
+              {{ delivery.gestational_age_at_delivery }}wks
+              {% if delivery.is_preterm %}
+              <span class="block text-xs text-amber-500">Preterm</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="py-3 px-6">
+            <a href="{% url 'delivery:detail' delivery.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-400">View →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+      </svg>
+      <p class="text-sm">No deliveries recorded yet.</p>
+      <p class="text-xs mt-1">Record a delivery from a mother's pregnancy detail page.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

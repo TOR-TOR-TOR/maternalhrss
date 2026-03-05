@@ -1,225 +1,184 @@
 # apps/anc/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
-from django.core.paginator import Paginator
-from django.utils import timezone
-from datetime import timedelta
+from datetime import date
+
 from .models import ANCVisit
-from apps.mothers.models import Mother, Pregnancy
-from .forms import ANCVisitForm  # You'll need to create this form
+from .forms import ANCVisitRecordForm
 
 
-@login_required
-def anc_visit_list(request):
-    """
-    List all ANC visits for the nurse's facility with filtering options.
-    """
-    facility = request.user.facility
-    today = timezone.now().date()
-    
-    # Base queryset
-    visits = ANCVisit.objects.filter(
-        pregnancy__mother__facility=facility
-    ).select_related('pregnancy__mother', 'recorded_by').order_by('-scheduled_date')
-    
-    # Filter by status
-    status_filter = request.GET.get('status', 'all')
-    if status_filter == 'today':
-        visits = visits.filter(scheduled_date=today, attended=False)
-    elif status_filter == 'upcoming':
-        visits = visits.filter(scheduled_date__gt=today, attended=False, missed=False)
-    elif status_filter == 'overdue':
-        visits = visits.filter(scheduled_date__lt=today, attended=False, missed=False)
-    elif status_filter == 'completed':
-        visits = visits.filter(attended=True)
-    elif status_filter == 'missed':
-        visits = visits.filter(missed=True)
-    
-    # Filter by risk level
-    risk_filter = request.GET.get('risk', '')
-    if risk_filter:
-        visits = visits.filter(pregnancy__risk_level=risk_filter)
-    
-    # Search by mother name or ID
-    search_query = request.GET.get('search', '')
-    if search_query:
-        visits = visits.filter(
-            Q(pregnancy__mother__first_name__icontains=search_query) |
-            Q(pregnancy__mother__last_name__icontains=search_query) |
-            Q(pregnancy__mother__mother_id__icontains=search_query)
-        )
-    
-    # Pagination
-    paginator = Paginator(visits, 25)  # 25 visits per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    # Statistics
-    stats = {
-        'today': visits.filter(scheduled_date=today, attended=False).count(),
-        'upcoming': visits.filter(scheduled_date__gt=today, attended=False, missed=False).count(),
-        'overdue': visits.filter(scheduled_date__lt=today, attended=False, missed=False).count(),
-        'completed': visits.filter(attended=True).count(),
-    }
-    
-    context = {
-        'page_title': 'ANC Visits',
-        'visits': page_obj,
-        'stats': stats,
-        'status_filter': status_filter,
-        'risk_filter': risk_filter,
-        'search_query': search_query,
-    }
-    return render(request, 'anc/visit_list.html', context)
+# ─────────────────────────────────────────────
+# Constants — single source of truth for
+# filter tabs and intervention labels used
+# across list and detail templates.
+# ─────────────────────────────────────────────
+
+FILTER_TABS = [
+    ('upcoming', 'Upcoming',  'green'),
+    ('overdue',  'Overdue',   'amber'),
+    ('missed',   'Missed',    'red'),
+    ('attended', 'Attended',  'gray'),
+]
+
+INTERVENTION_LABELS = [
+    ('iron_given',           'Iron Supplement'),
+    ('folic_acid_given',     'Folic Acid'),
+    ('deworming_done',       'Deworming'),
+    ('tetanus_vaccine_given','TT Vaccine'),
+]
+
+SUPPLEMENT_FIELDS = [
+    ('iron_given',            'Iron Supplement'),
+    ('folic_acid_given',      'Folic Acid'),
+    ('deworming_done',        'Deworming'),
+    ('tetanus_vaccine_given', 'TT Vaccine'),
+]
 
 
-@login_required
-def anc_visit_detail(request, pk):
+# ─────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────
+
+def _get_scoped_anc(user):
     """
-    View detailed information about a specific ANC visit.
+    Return ANCVisit queryset scoped to the user's facility.
+    MOH sees all; MANAGER and NURSE see only their facility.
     """
-    visit = get_object_or_404(
-        ANCVisit.objects.select_related('pregnancy__mother', 'recorded_by'),
-        pk=pk,
-        pregnancy__mother__facility=request.user.facility
+    qs = ANCVisit.objects.select_related(
+        'pregnancy__mother',
+        'pregnancy',
+        'facility',
+        'recorded_by',
     )
-    
-    context = {
-        'page_title': f'ANC Visit {visit.visit_number} Details',
-        'visit': visit,
+    if user.role == 'MOH':
+        return qs.all()
+    return qs.filter(facility=user.facility)
+
+
+def _visit_context(visit):
+    """Shared context dict used by detail, record, and update views."""
+    return {
+        'visit':      visit,
+        'mother':     visit.pregnancy.mother,
+        'pregnancy':  visit.pregnancy,
     }
-    return render(request, 'anc/visit_detail.html', context)
+
+
+# ─────────────────────────────────────────────
+# Views
+# ─────────────────────────────────────────────
+
+@login_required
+def anc_list_view(request):
+    """
+    List ANC visits scoped to the user's role.
+    Supports ?status= filter.
+    """
+    qs     = _get_scoped_anc(request.user)
+    status = request.GET.get('status', '')
+    today  = date.today()
+
+    filter_map = {
+        'attended': dict(attended=True),
+        'missed':   dict(missed=True),
+        'overdue':  dict(
+                        scheduled_date__lt=today,
+                        attended=False,
+                        missed=False,
+                        pregnancy__status='ACTIVE',
+                    ),
+        'upcoming': dict(
+                        scheduled_date__gte=today,
+                        attended=False,
+                        missed=False,
+                        pregnancy__status='ACTIVE',
+                    ),
+    }
+
+    if status in filter_map:
+        qs = qs.filter(**filter_map[status])
+
+    return render(request, 'anc/anc_list.html', {
+        'visits':        qs.order_by('scheduled_date'),
+        'active_filter': status,
+        'filters':       FILTER_TABS,
+        'today':         today,
+    })
 
 
 @login_required
-def anc_visit_record(request, visit_id):
+def anc_detail_view(request, pk):
+    """Read-only detail for a single ANC visit."""
+    qs    = _get_scoped_anc(request.user)
+    visit = get_object_or_404(qs, pk=pk)
+
+    # Build interventions list for template — avoids logic in template
+    interventions = [
+        (label, getattr(visit, field))
+        for field, label in INTERVENTION_LABELS
+    ]
+
+    return render(request, 'anc/anc_detail.html', {
+        **_visit_context(visit),
+        'interventions':   interventions,
+    })
+
+
+@login_required
+def anc_record_view(request, pk):
     """
-    Record/complete an ANC visit.
-    This is where nurses enter visit data.
+    Record clinical data for an existing ANC visit.
+    Only for visits not yet attended.
     """
-    visit = get_object_or_404(
-        ANCVisit.objects.select_related('pregnancy__mother'),
-        pk=visit_id,
-        pregnancy__mother__facility=request.user.facility
-    )
-    
-    # Don't allow editing completed visits
+    qs    = _get_scoped_anc(request.user)
+    visit = get_object_or_404(qs, pk=pk)
+
     if visit.attended:
-        messages.warning(request, 'This visit has already been completed.')
-        return redirect('anc_visit_detail', pk=visit.pk)
-    
-    if request.method == 'POST':
-        form = ANCVisitForm(request.POST, instance=visit)
-        if form.is_valid():
-            anc_visit = form.save(commit=False)
-            anc_visit.attended = True
-            anc_visit.actual_visit_date = timezone.now().date()
-            anc_visit.recorded_by = request.user
-            anc_visit.save()
-            
-            messages.success(request, f'ANC Visit {visit.visit_number} recorded successfully!')
-            return redirect('anc_visit_detail', pk=visit.pk)
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = ANCVisitForm(instance=visit)
-    
-    context = {
-        'page_title': f'Record ANC Visit {visit.visit_number}',
-        'visit': visit,
-        'form': form,
-        'mother': visit.pregnancy.mother,
-        'pregnancy': visit.pregnancy,
-    }
-    return render(request, 'anc/visit_record.html', context)
+        messages.info(request, "This visit has already been recorded.")
+        return redirect('anc:detail', pk=visit.pk)
 
+    form = ANCVisitRecordForm(request.POST or None, instance=visit)
 
-@login_required
-def anc_visit_create(request):
-    """
-    Create/schedule a new ANC visit for a mother.
-    """
-    mother_id = request.GET.get('mother')
-    pregnancy_id = request.GET.get('pregnancy')
-    
-    pregnancy = None
-    if pregnancy_id:
-        pregnancy = get_object_or_404(
-            Pregnancy.objects.select_related('mother'),
-            pk=pregnancy_id,
-            mother__facility=request.user.facility
+    if request.method == 'POST' and form.is_valid():
+        form.save(recorded_by=request.user)
+        messages.success(
+            request,
+            f"ANC Visit {visit.visit_number} for "
+            f"{visit.pregnancy.mother.full_name} recorded successfully."
         )
-    elif mother_id:
-        mother = get_object_or_404(Mother, pk=mother_id, facility=request.user.facility)
-        pregnancy = mother.pregnancies.filter(status='ACTIVE').first()
-        if not pregnancy:
-            messages.error(request, 'No active pregnancy found for this mother.')
-            return redirect('mother_detail', pk=mother_id)
-    
-    if request.method == 'POST':
-        form = ANCVisitForm(request.POST)
-        if form.is_valid():
-            visit = form.save(commit=False)
-            visit.pregnancy = pregnancy
-            visit.facility = request.user.facility
-            visit.recorded_by = request.user
-            
-            # Auto-calculate visit number
-            last_visit = ANCVisit.objects.filter(pregnancy=pregnancy).order_by('-visit_number').first()
-            visit.visit_number = (last_visit.visit_number + 1) if last_visit else 1
-            
-            visit.save()
-            
-            messages.success(request, f'ANC Visit {visit.visit_number} scheduled successfully!')
-            return redirect('anc_visit_detail', pk=visit.pk)
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        # Pre-fill some fields
-        form = ANCVisitForm()
-        if pregnancy:
-            form.fields['scheduled_date'].initial = timezone.now().date() + timedelta(days=28)
-    
-    context = {
-        'page_title': 'Schedule New ANC Visit',
-        'form': form,
-        'pregnancy': pregnancy,
-    }
-    return render(request, 'anc/visit_create.html', context)
+        return redirect('anc:detail', pk=visit.pk)
+
+    return render(request, 'anc/anc_record.html', {
+        **_visit_context(visit),
+        'form':             form,
+        'supplement_fields': SUPPLEMENT_FIELDS,
+    })
 
 
 @login_required
-def anc_visit_edit(request, pk):
+def anc_update_view(request, pk):
     """
-    Edit an existing ANC visit (only if not completed).
+    Edit an already-recorded ANC visit.
+    Nurses can only edit visits they recorded.
     """
-    visit = get_object_or_404(
-        ANCVisit.objects.select_related('pregnancy__mother'),
-        pk=pk,
-        pregnancy__mother__facility=request.user.facility
-    )
-    
-    # Don't allow editing completed visits
-    if visit.attended:
-        messages.warning(request, 'Cannot edit a completed visit.')
-        return redirect('anc_visit_detail', pk=visit.pk)
-    
-    if request.method == 'POST':
-        form = ANCVisitForm(request.POST, instance=visit)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Visit updated successfully!')
-            return redirect('anc_visit_detail', pk=visit.pk)
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = ANCVisitForm(instance=visit)
-    
-    context = {
-        'page_title': f'Edit ANC Visit {visit.visit_number}',
-        'visit': visit,
-        'form': form,
-    }
-    return render(request, 'anc/visit_edit.html', context)
+    qs    = _get_scoped_anc(request.user)
+    visit = get_object_or_404(qs, pk=pk, attended=True)
+
+    if request.user.role == 'NURSE' and visit.recorded_by != request.user:
+        messages.error(request, "You can only edit visits you recorded.")
+        return redirect('anc:detail', pk=visit.pk)
+
+    form = ANCVisitRecordForm(request.POST or None, instance=visit)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save(recorded_by=visit.recorded_by)
+        messages.success(request, "ANC visit updated successfully.")
+        return redirect('anc:detail', pk=visit.pk)
+
+    return render(request, 'anc/anc_record.html', {
+        **_visit_context(visit),
+        'form':              form,
+        'supplement_fields': SUPPLEMENT_FIELDS,
+        'is_update':         True,
+    })

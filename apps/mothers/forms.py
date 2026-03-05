@@ -1,277 +1,206 @@
 # apps/mothers/forms.py
 from django import forms
-from django.core.exceptions import ValidationError
 from .models import Mother, Pregnancy
-from datetime import date, timedelta
-import re
+from apps.users.forms import apply_tailwind
 
 
-class MotherForm(forms.ModelForm):
+# ─────────────────────────────────────────────
+# Field Groups — single source of truth
+# ─────────────────────────────────────────────
+
+MOTHER_PERSONAL_FIELDS    = ['first_name', 'last_name', 'date_of_birth', 'national_id']
+MOTHER_CONTACT_FIELDS     = ['phone_number', 'alternate_phone']
+MOTHER_LOCATION_FIELDS    = ['county', 'sub_county', 'ward', 'village']
+MOTHER_NOK_FIELDS         = ['next_of_kin_name', 'next_of_kin_phone',
+                              'next_of_kin_relationship']
+MOTHER_STATUS_FIELDS      = ['is_active']
+
+ALL_MOTHER_FIELDS         = (MOTHER_PERSONAL_FIELDS + MOTHER_CONTACT_FIELDS +
+                              MOTHER_LOCATION_FIELDS + MOTHER_NOK_FIELDS)
+
+ALL_MOTHER_UPDATE_FIELDS  = ALL_MOTHER_FIELDS + MOTHER_STATUS_FIELDS
+
+PREGNANCY_BASIC_FIELDS    = ['lmp', 'pregnancy_number', 'parity']
+PREGNANCY_RISK_FIELDS     = ['risk_level', 'risk_factors', 'previous_csection',
+                              'previous_complications']
+PREGNANCY_NOTES_FIELDS    = ['notes']
+
+ALL_PREGNANCY_FIELDS      = (PREGNANCY_BASIC_FIELDS + PREGNANCY_RISK_FIELDS +
+                              PREGNANCY_NOTES_FIELDS)
+
+
+# ─────────────────────────────────────────────
+# Mother Forms
+# ─────────────────────────────────────────────
+
+class MotherRegistrationForm(forms.ModelForm):
     """
-    Form for creating and editing mother records with validation.
+    Register a new mother.
+    facility and registered_by are set in the view, not exposed here.
     """
+
     class Meta:
-        model = Mother
-        fields = [
-            'first_name',
-            'last_name',
-            'date_of_birth',
-            'national_id',
-            'phone_number',
-            'alternate_phone',
-            'county',
-            'sub_county',
-            'ward',
-            'village',
-            'next_of_kin_name',
-            'next_of_kin_phone',
-            'next_of_kin_relationship',
-        ]
+        model  = Mother
+        fields = ALL_MOTHER_FIELDS
         widgets = {
-            'first_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'First name',
-                'required': True
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Last name',
-                'required': True
-            }),
-            'date_of_birth': forms.DateInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'type': 'date',
-                'required': True
-            }),
-            'national_id': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'National ID number (optional)'
-            }),
-            'phone_number': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': '+254712345678',
-                'required': True
-            }),
-            'alternate_phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Alternative phone (optional)'
-            }),
-            'county': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'County',
-                'required': True
-            }),
-            'sub_county': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Sub-county',
-                'required': True
-            }),
-            'ward': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Ward',
-                'required': True
-            }),
-            'village': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Village (optional)'
-            }),
-            'next_of_kin_name': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Next of kin name'
-            }),
-            'next_of_kin_phone': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Next of kin phone'
-            }),
-            'next_of_kin_relationship': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Relationship (e.g., Husband, Mother, Sister)'
-            }),
+            'first_name':               forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':                forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'date_of_birth':            forms.DateInput(attrs={'type': 'date'}),
+            'national_id':              forms.TextInput(attrs={'placeholder': 'Optional'}),
+            'phone_number':             forms.TextInput(attrs={'placeholder': '+254712345678'}),
+            'alternate_phone':          forms.TextInput(attrs={'placeholder': 'Optional'}),
+            'county':                   forms.TextInput(attrs={'placeholder': 'e.g. Nairobi'}),
+            'sub_county':               forms.TextInput(attrs={'placeholder': 'e.g. Langata'}),
+            'ward':                     forms.TextInput(attrs={'placeholder': 'e.g. Karen'}),
+            'village':                  forms.TextInput(attrs={'placeholder': 'Optional'}),
+            'next_of_kin_name':         forms.TextInput(attrs={'placeholder': 'Full name'}),
+            'next_of_kin_phone':        forms.TextInput(attrs={'placeholder': '+254712345678'}),
+            'next_of_kin_relationship': forms.TextInput(attrs={'placeholder': 'e.g. Husband, Sister'}),
         }
-    
-    def clean_first_name(self):
-        first_name = self.cleaned_data.get('first_name')
-        if not first_name:
-            raise ValidationError('First name is required.')
-        if len(first_name) < 2:
-            raise ValidationError('First name must be at least 2 characters.')
-        if not re.match(r'^[a-zA-Z\s]+$', first_name):
-            raise ValidationError('First name should only contain letters.')
-        return first_name.strip().title()
-    
-    def clean_last_name(self):
-        last_name = self.cleaned_data.get('last_name')
-        if not last_name:
-            raise ValidationError('Last name is required.')
-        if len(last_name) < 2:
-            raise ValidationError('Last name must be at least 2 characters.')
-        if not re.match(r'^[a-zA-Z\s]+$', last_name):
-            raise ValidationError('Last name should only contain letters.')
-        return last_name.strip().title()
-    
-    def clean_date_of_birth(self):
-        dob = self.cleaned_data.get('date_of_birth')
-        if not dob:
-            raise ValidationError('Date of birth is required.')
-        
-        today = date.today()
-        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
-        
-        if dob > today:
-            raise ValidationError('Date of birth cannot be in the future.')
-        if age < 10:
-            raise ValidationError('Mother must be at least 10 years old.')
-        if age > 60:
-            raise ValidationError('Please verify the date of birth. Age seems unusually high.')
-        
-        return dob
-    
-    def clean_phone_number(self):
-        phone = self.cleaned_data.get('phone_number')
-        if not phone:
-            raise ValidationError('Phone number is required.')
-        
-        # Remove spaces and dashes
-        phone = phone.replace(' ', '').replace('-', '')
-        
-        # Check Kenya phone format
-        if not re.match(r'^\+?254\d{9}$', phone):
-            raise ValidationError('Invalid phone format. Use: +254712345678 or 254712345678')
-        
-        # Ensure it starts with +254
-        if not phone.startswith('+'):
-            phone = '+' + phone
-        
-        return phone
-    
-    def clean_alternate_phone(self):
-        phone = self.cleaned_data.get('alternate_phone')
-        if phone:
-            phone = phone.replace(' ', '').replace('-', '')
-            if not re.match(r'^\+?254\d{9}$', phone):
-                raise ValidationError('Invalid phone format. Use: +254712345678')
-            if not phone.startswith('+'):
-                phone = '+' + phone
-        return phone
-    
-    def clean_national_id(self):
-        national_id = self.cleaned_data.get('national_id')
-        if national_id:
-            national_id = national_id.strip()
-            if len(national_id) < 5:
-                raise ValidationError('National ID seems too short.')
-        return national_id
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required  = True
+        self.fields['last_name'].required   = True
+        self.fields['phone_number'].required = True
+        self.fields['date_of_birth'].required = True
+        self.fields['county'].required      = True
+        self.fields['sub_county'].required  = True
+        self.fields['ward'].required        = True
+        apply_tailwind(self)
+
+    def clean_date_of_birth(self):
+        """Mother must be at least 10 years old (safeguard against data entry errors)."""
+        from datetime import date
+        dob = self.cleaned_data.get('date_of_birth')
+        if dob:
+            age = (date.today() - dob).days // 365
+            if age < 10:
+                raise forms.ValidationError("Please check the date of birth entered.")
+            if dob > date.today():
+                raise forms.ValidationError("Date of birth cannot be in the future.")
+        return dob
+
+    def save(self, commit=True, facility=None, registered_by=None):
+        """Attach facility and registered_by before saving."""
+        mother = super().save(commit=False)
+        if facility:
+            mother.facility      = facility
+        if registered_by:
+            mother.registered_by = registered_by
+        if commit:
+            mother.save()
+        return mother
+
+
+class MotherUpdateForm(MotherRegistrationForm):
+    """
+    Update an existing mother's record.
+    Extends MotherRegistrationForm adding the is_active status field.
+    All validation and save() logic inherited.
+    """
+
+    class Meta(MotherRegistrationForm.Meta):
+        fields = ALL_MOTHER_UPDATE_FIELDS
+
+
+# ─────────────────────────────────────────────
+# Pregnancy Form
+# ─────────────────────────────────────────────
 
 class PregnancyForm(forms.ModelForm):
     """
-    Form for creating and editing pregnancy records with validation.
+    Register a new pregnancy for an existing mother.
+    mother, facility, and registered_by are set in the view via URL/session.
+    edd and gestational_age_weeks are auto-calculated in Pregnancy.save().
     """
+
     class Meta:
-        model = Pregnancy
-        fields = [
-            'lmp',
-            'pregnancy_number',
-            'parity',
-            'risk_level',
-            'risk_factors',
-            'previous_csection',
-            'previous_complications',
-            'notes',
-        ]
+        model  = Pregnancy
+        fields = ALL_PREGNANCY_FIELDS
         widgets = {
-            'lmp': forms.DateInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'type': 'date',
-                'required': True
-            }),
-            'pregnancy_number': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Gravida (G)',
-                'min': '1',
-                'required': True
-            }),
-            'parity': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Para (P)',
-                'min': '0',
-                'required': True
-            }),
-            'risk_level': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'required': True
-            }),
-            'risk_factors': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'rows': '3',
-                'placeholder': 'List risk factors: High BP, diabetes, previous C-section, age >35, etc.'
-            }),
-            'previous_csection': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
+            'lmp':                    forms.DateInput(attrs={'type': 'date'}),
+            'pregnancy_number':       forms.NumberInput(attrs={'min': 1, 'placeholder': 'e.g. 1'}),
+            'parity':                 forms.NumberInput(attrs={'min': 0, 'placeholder': 'e.g. 0'}),
+            'risk_factors':           forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'e.g. High BP, diabetes, age >35, previous C-section…'
             }),
             'previous_complications': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'rows': '3',
-                'placeholder': 'Details of any previous pregnancy/delivery complications'
+                'rows': 3,
+                'placeholder': 'Details of any previous pregnancy complications…'
             }),
-            'notes': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'rows': '3',
-                'placeholder': 'Additional clinical notes'
+            'notes':                  forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Additional clinical notes…'
             }),
         }
-    
+
+    def __init__(self, *args, **kwargs):
+        # Accept mother kwarg to auto-set pregnancy_number
+        self.mother = kwargs.pop('mother', None)
+        super().__init__(*args, **kwargs)
+        self.fields['lmp'].required              = True
+        self.fields['pregnancy_number'].required = True
+        self.fields['parity'].required           = True
+
+        # Pre-fill pregnancy_number as next in sequence
+        if self.mother and not self.instance.pk:
+            next_num = self.mother.total_pregnancies + 1
+            self.fields['pregnancy_number'].initial = next_num
+
+        apply_tailwind(self)
+
     def clean_lmp(self):
+        """LMP cannot be in the future and must be within the last 10 months."""
+        from datetime import date
         lmp = self.cleaned_data.get('lmp')
-        if not lmp:
-            raise ValidationError('Last Menstrual Period (LMP) is required.')
-        
-        today = date.today()
-        
-        if lmp > today:
-            raise ValidationError('LMP cannot be in the future.')
-        
-        # Check if LMP is within reasonable range (not more than 10 months ago)
-        days_ago = (today - lmp).days
-        if days_ago > 320:  # ~10.5 months
-            raise ValidationError('LMP is too far in the past. Please verify the date.')
-        
-        if days_ago < 0:
-            raise ValidationError('LMP date is invalid.')
-        
+        if lmp:
+            if lmp > date.today():
+                raise forms.ValidationError("LMP cannot be in the future.")
+            days_ago = (date.today() - lmp).days
+            if days_ago > 300:  # ~10 months — beyond full term
+                raise forms.ValidationError(
+                    "LMP is more than 10 months ago. Please verify the date."
+                )
         return lmp
-    
-    def clean_pregnancy_number(self):
-        pregnancy_number = self.cleaned_data.get('pregnancy_number')
-        if not pregnancy_number:
-            raise ValidationError('Pregnancy number (Gravida) is required.')
-        if pregnancy_number < 1:
-            raise ValidationError('Pregnancy number must be at least 1.')
-        if pregnancy_number > 20:
-            raise ValidationError('Pregnancy number seems unusually high. Please verify.')
-        return pregnancy_number
-    
-    def clean_parity(self):
-        parity = self.cleaned_data.get('parity')
-        if parity is None:
-            raise ValidationError('Parity is required.')
-        if parity < 0:
-            raise ValidationError('Parity cannot be negative.')
-        if parity > 15:
-            raise ValidationError('Parity seems unusually high. Please verify.')
-        return parity
-    
+
     def clean(self):
-        cleaned_data = super().clean()
-        pregnancy_number = cleaned_data.get('pregnancy_number')
-        parity = cleaned_data.get('parity')
-        
-        # Parity cannot be greater than or equal to pregnancy number
-        if pregnancy_number and parity is not None:
-            if parity >= pregnancy_number:
-                raise ValidationError({
-                    'parity': 'Parity (P) must be less than Pregnancy number (G). '
-                              'Parity is the number of previous births, while Gravida includes current pregnancy.'
-                })
-        
+        cleaned_data      = super().clean()
+        risk_level        = cleaned_data.get('risk_level')
+        risk_factors      = cleaned_data.get('risk_factors', '').strip()
+        prev_csection     = cleaned_data.get('previous_csection')
+        prev_comp         = cleaned_data.get('previous_complications', '').strip()
+
+        # If marked high/medium risk, require risk factors description
+        if risk_level in ('HIGH', 'MEDIUM') and not risk_factors:
+            self.add_error(
+                'risk_factors',
+                'Please describe the risk factors for this risk level.'
+            )
+
+        # If previous C-section, encourage documenting complications
+        if prev_csection and not prev_comp:
+            self.add_error(
+                'previous_complications',
+                'Please document details of the previous C-section.'
+            )
+
         return cleaned_data
+
+    def save(self, commit=True, mother=None, facility=None, registered_by=None):
+        """
+        Attach mother, facility, registered_by before saving.
+        Pregnancy.save() auto-calculates EDD and gestational age.
+        Signal in anc app auto-generates 8 ANC contacts after save.
+        """
+        pregnancy = super().save(commit=False)
+        if mother:
+            pregnancy.mother        = mother
+        if facility:
+            pregnancy.facility      = facility
+        if registered_by:
+            pregnancy.registered_by = registered_by
+        if commit:
+            pregnancy.save()
+        return pregnancy

@@ -5,9 +5,12 @@ from django.shortcuts import redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', lambda request: redirect('users:login'), name='home'),
-    path('', include('apps.users.urls', namespace='users')),  # no prefix
+    path('', include('apps.users.urls', namespace='users')),  
     path('mothers/', include('apps.mothers.urls')),
     path('anc/', include('apps.anc.urls')),
+    path('deliveries/', include('apps.delivery.urls')),
+    path('immunization/', include('apps.immunization.urls')),
+    path('reminders/', include('apps.reminders.urls')),
 ]
 
 admin.site.site_header = "Maternal Health System Admin"

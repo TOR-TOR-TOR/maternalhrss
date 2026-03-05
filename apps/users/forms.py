@@ -144,6 +144,65 @@ class CustomUserUpdateForm(UserChangeForm):
         return cleaned_data
 
 
+class NurseProfileForm(forms.ModelForm):
+    """
+    Self-edit form for NURSE role.
+    Only personal fields — role, facility, is_active_user are admin-only.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+        ]
+        widgets = {
+            'first_name':   forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':    forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'email':        forms.EmailInput(attrs={'placeholder': 'email@example.com'}),
+            'phone_number': forms.TextInput(attrs={'placeholder': '+254712345678'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required  = True
+        apply_tailwind(self)
+
+
+# ── ADD to apps/users/forms.py ─────────────────────────────────
+# Place after NurseProfileForm, before LoginForm
+
+class ManagerProfileForm(forms.ModelForm):
+    """
+    Self-edit form for MANAGER role.
+    Same personal fields as NurseProfileForm — role, facility,
+    and is_active_user are admin (MOH) only.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+        ]
+        widgets = {
+            'first_name':   forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':    forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'email':        forms.EmailInput(attrs={'placeholder': 'email@example.com'}),
+            'phone_number': forms.TextInput(attrs={'placeholder': '+254712345678'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required  = True
+        apply_tailwind(self)
+
 class LoginForm(forms.Form):
     """
     Thin wrapper around Django's authenticate().

@@ -10,6 +10,19 @@ urlpatterns = [
     path('auth/login/',  views.LoginView.as_view(), name='login'),
     path('auth/logout/', views.logout_view,          name='logout'),
 
+
+    path('auth/password-change/',
+     views.StyledPasswordChangeView.as_view(),
+     name='password_change'),
+
+    path('auth/password-change/done/',
+     views.StyledPasswordChangeDoneView.as_view(),
+     name='password_change_done'),
+     
+    # ── Dashboards ────────────────────────────────────
+    path('dashboard/nurse/', views.nurse_dashboard_view, name='nurse_dashboard'),   
+    path('dashboard/manager/', views.manager_dashboard_view, name='manager_dashboard'),
+
     # ── Users ─────────────────────────────────────────
     path('users/',                  views.user_list_view,   name='user_list'),
     path('users/register/',         views.register_view,    name='register'),

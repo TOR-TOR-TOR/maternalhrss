@@ -1,0 +1,195 @@
+{# templates/anc/anc_detail.html #}
+{% extends "base.html" %}
+{% block title %}ANC {{ visit.visit_number }} — {{ mother.full_name }}{% endblock %}
+{% block page_heading %}ANC Visit Detail{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'mothers:pregnancy_detail' pregnancy.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+      <div>
+        <h1 class="font-display font-bold text-2xl text-gray-900">
+          ANC Contact {{ visit.visit_number }}
+          <span class="badge badge-sm border-0 ml-2 font-medium
+            {% if visit.attended %}bg-green-50 text-green-700
+            {% elif visit.missed %}bg-red-50 text-red-600
+            {% elif visit.is_overdue %}bg-amber-50 text-amber-600
+            {% else %}bg-gray-100 text-gray-500{% endif %}">
+            {{ visit.status }}
+          </span>
+        </h1>
+        <p class="text-gray-400 text-sm mt-0.5">
+          {{ mother.full_name }} · {{ pregnancy.gravida_para_display }} · {{ pregnancy.gestational_age_weeks }} weeks
+        </p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      {% if visit.attended %}
+        <a href="{% url 'anc:update' visit.pk %}"
+           class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">Edit</a>
+        {% if not visit.has_danger_signs %}
+        <a href="{% url 'reminders:send_anc' visit.pk %}"
+           class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">Send Reminder</a>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'anc:record_visit' visit.pk %}"
+           class="btn btn-sm text-white border-0 rounded-xl"
+           style="background:#0f6b4f">Record Visit</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Danger Signs Alert ──────────────────────────────────── -->
+  {% if visit.has_danger_signs %}
+  <div class="alert alert-error rounded-xl text-sm py-3 flex gap-3">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+      <p class="font-semibold">Danger Signs Recorded</p>
+      <p class="mt-0.5 opacity-90">{{ visit.danger_signs_notes }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- ── Left: Visit Summary ──────────────────────────────── -->
+    <div class="space-y-4">
+
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+          Visit Info
+        </h2>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-xs text-gray-400">Scheduled Date</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ visit.scheduled_date|date:"d M Y" }}</dd>
+          </div>
+          {% if visit.actual_visit_date %}
+          <div>
+            <dt class="text-xs text-gray-400">Actual Visit Date</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ visit.actual_visit_date|date:"d M Y" }}</dd>
+          </div>
+          {% endif %}
+          {% if visit.recorded_by %}
+          <div>
+            <dt class="text-xs text-gray-400">Recorded By</dt>
+            <dd class="text-sm text-gray-800">{{ visit.recorded_by.get_full_name }}</dd>
+          </div>
+          {% endif %}
+          {% if visit.next_visit_date %}
+          <div>
+            <dt class="text-xs text-gray-400">Next Visit</dt>
+            <dd class="text-sm font-medium" style="color:#0f6b4f">
+              {{ visit.next_visit_date|date:"d M Y" }}
+            </dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      <!-- Supplements Given -->
+      {% if visit.attended %}
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+          Interventions
+        </h2>
+        <ul class="space-y-2">
+          {% for label, given in interventions %}
+          <li class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">{{ label }}</span>
+            {% if given %}
+            <span class="badge badge-sm bg-green-50 text-green-700 border-0">✓ Given</span>
+            {% else %}
+            <span class="badge badge-sm bg-gray-100 text-gray-400 border-0">Not Given</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── Right: Clinical Measurements ────────────────────── -->
+    <div class="lg:col-span-2 space-y-4">
+
+      {% if visit.attended %}
+      <!-- Measurements -->
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-base text-gray-800 mb-4">Clinical Measurements</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+          <div class="bg-gray-50 rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-gray-800">
+              {{ visit.weight_kg|default:"—" }}
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Weight (kg)</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-display font-bold text-gray-800">
+              {{ visit.blood_pressure|default:"—" }}
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Blood Pressure</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-gray-800">
+              {{ visit.hemoglobin|default:"—" }}
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Hb (g/dL)</p>
+          </div>
+
+          <div class="bg-gray-50 rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-gray-800">
+              {{ visit.fundal_height|default:"—" }}
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">Fundal Height (cm)</p>
+          </div>
+
+        </div>
+
+        <!-- Fetal Heartbeat -->
+        <div class="mt-4 flex items-center gap-2">
+          {% if visit.fetal_heartbeat %}
+          <span class="badge badge-sm bg-green-50 text-green-700 border-0">✓ Fetal Heartbeat Detected</span>
+          {% else %}
+          <span class="badge badge-sm bg-red-50 text-red-600 border-0">✗ Fetal Heartbeat Not Detected</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Clinical Notes -->
+      {% if visit.clinical_notes %}
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-base text-gray-800 mb-3">Clinical Notes</h2>
+        <p class="text-sm text-gray-700 leading-relaxed">{{ visit.clinical_notes }}</p>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <!-- Not yet attended -->
+      <div class="page-card flex flex-col items-center justify-center py-16 text-gray-400">
+        <svg class="w-10 h-10 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+        </svg>
+        <p class="text-sm">This visit has not been recorded yet.</p>
+        <a href="{% url 'anc:record_visit' visit.pk %}"
+           class="btn btn-sm mt-4 text-white border-0 rounded-xl"
+           style="background:#0f6b4f">Record Now</a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

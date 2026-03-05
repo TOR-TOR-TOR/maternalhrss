@@ -1,0 +1,116 @@
+{# templates/mothers/mother_list.html #}
+{% extends "base.html" %}
+{% block title %}Mothers{% endblock %}
+{% block page_heading %}Mothers{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">Mothers</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ mothers|length }} registered at your facility</p>
+    </div>
+    <a href="{% url 'mothers:register' %}"
+       class="btn btn-sm text-white border-0 rounded-xl gap-2 shadow-sm"
+       style="background:#0f6b4f">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Register Mother
+    </a>
+  </div>
+
+  <!-- ── Search ──────────────────────────────────────────────── -->
+  <form method="get" class="flex gap-2">
+    <input type="text" name="q" value="{{ query }}"
+           placeholder="Search by name or phone…"
+           class="input input-bordered input-sm rounded-xl flex-1 bg-white border-gray-200 focus:border-[#0f6b4f] focus:outline-none text-sm"/>
+    <button type="submit"
+            class="btn btn-sm rounded-xl border-0 text-white"
+            style="background:#0f6b4f">Search</button>
+    {% if query %}
+    <a href="{% url 'mothers:list' %}"
+       class="btn btn-sm rounded-xl btn-ghost text-gray-500">Clear</a>
+    {% endif %}
+  </form>
+
+  <!-- ── Table ───────────────────────────────────────────────── -->
+  <div class="page-card p-0 overflow-hidden">
+    {% if mothers %}
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Mother</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Phone</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Location</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Pregnancy</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Registered</th>
+          <th class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for mother in mothers %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder flex-shrink-0">
+                <div class="rounded-full w-8 text-white text-xs font-bold"
+                     style="background:#0f6b4f">
+                  <span>{{ mother.first_name|slice:":1" }}{{ mother.last_name|slice:":1" }}</span>
+                </div>
+              </div>
+              <div>
+                <p class="font-medium text-sm text-gray-800">{{ mother.full_name }}</p>
+                <p class="text-xs text-gray-400">Age {{ mother.age }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ mother.phone_number }}</td>
+          <td class="py-3 text-sm text-gray-600">{{ mother.ward }}, {{ mother.sub_county }}</td>
+          <td class="py-3">
+            {% if mother.has_active_pregnancy %}
+              {% with p=mother.active_pregnancy %}
+              <span class="badge badge-sm border-0 font-medium"
+                    style="background:#e6f4ef; color:#0f6b4f">
+                {{ p.get_gestational_age_display }} · {{ p.gravida_para_display }}
+              </span>
+              {% if p.is_high_risk %}
+              <span class="badge badge-sm bg-red-50 text-red-600 border-0 ml-1">⚠ High Risk</span>
+              {% endif %}
+              {% endwith %}
+            {% else %}
+              <span class="text-xs text-gray-400">No active pregnancy</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-sm text-gray-400">{{ mother.registration_date|date:"d M Y" }}</td>
+          <td class="py-3 px-6">
+            <a href="{% url 'mothers:detail' mother.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-500">View →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      {% if query %}
+        <p class="text-sm">No mothers found for <strong>"{{ query }}"</strong></p>
+        <a href="{% url 'mothers:list' %}" class="text-sm mt-2 inline-block" style="color:#0f6b4f">Clear search</a>
+      {% else %}
+        <p class="text-sm">No mothers registered yet.</p>
+        <a href="{% url 'mothers:register' %}"
+           class="btn btn-sm mt-4 text-white border-0 rounded-xl"
+           style="background:#0f6b4f">Register First Mother</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

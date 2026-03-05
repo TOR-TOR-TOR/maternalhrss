@@ -1,0 +1,171 @@
+{# templates/delivery/delivery_form.html #}
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_heading %}Record Delivery{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'mothers:pregnancy_detail' pregnancy.pk %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">{{ form_title }}</h1>
+      <p class="text-gray-400 text-sm mt-0.5">
+        {{ mother.full_name }} · {{ pregnancy.gravida_para_display }}
+        · EDD {{ pregnancy.edd|date:"d M Y" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── High risk alert ─────────────────────────────────────── -->
+  {% if pregnancy.is_high_risk %}
+  <div class="rounded-xl px-4 py-3 text-sm flex items-center gap-2 bg-red-50 text-red-700">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <span><strong>High Risk Pregnancy</strong> — {{ pregnancy.risk_factors }}</span>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Date & Time ───────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Date & Time
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "delivery_date,delivery_time" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }} *</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Delivery Details ──────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Delivery Details
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "delivery_type,delivery_outcome,number_of_babies" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }} *</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Mother's Condition ────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Mother's Condition
+      </h2>
+      <div class="space-y-4">
+        {% for field in form %}
+          {% if field.name in "mother_condition,blood_loss_ml" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% elif field.name == "complications" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Placenta ──────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Placenta
+      </h2>
+      <div class="space-y-4">
+        {% for field in form %}
+          {% if field.name == "placenta_complete" %}
+          <div class="flex items-center gap-3">
+            {{ field }}
+            <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">
+              {{ field.label }}
+            </label>
+          </div>
+          {% elif field.name == "placenta_weight_grams" %}
+          <div class="max-w-xs">
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Notes ────────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Notes <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+      </h2>
+      {% for field in form %}
+        {% if field.name == "notes" %}{{ field }}{% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- ── Non-field errors ─────────────────────────────────── -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-error text-sm py-2.5 rounded-xl mb-4">
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'mothers:pregnancy_detail' pregnancy.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6"
+              style="background:#0f6b4f">
+        Record Delivery
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

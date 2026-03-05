@@ -2,10 +2,17 @@
 from django.urls import path
 from . import views
 
+app_name = 'mothers'
+
 urlpatterns = [
-    path('', views.mother_list, name='mother_list'),
-    path('create/', views.mother_create, name='mother_create'),
-    path('<int:pk>/', views.mother_detail, name='mother_detail'),
-    path('<int:pk>/edit/', views.mother_edit, name='mother_edit'),
-    path('<int:pk>/delete/', views.mother_delete, name='mother_delete'),
+    # Mothers
+    path('',                                        views.mother_list_view,       name='list'),
+    path('register/',                               views.mother_register_view,   name='register'),
+    path('<int:pk>/',                               views.mother_detail_view,     name='detail'),
+    path('<int:pk>/edit/',                          views.mother_update_view,     name='update'),
+
+    # Pregnancies
+    path('<int:mother_pk>/pregnancy/register/',     views.pregnancy_register_view, name='register_pregnancy'),
+    path('pregnancy/<int:pk>/',                     views.pregnancy_detail_view,   name='pregnancy_detail'),
+    path('pregnancy/<int:pk>/edit/',                views.pregnancy_update_view,   name='pregnancy_update'),
 ]

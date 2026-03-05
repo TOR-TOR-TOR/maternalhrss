@@ -1,176 +1,223 @@
 # apps/mothers/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
-from django.core.paginator import Paginator
+
 from .models import Mother, Pregnancy
-from .forms import MotherForm, PregnancyForm
-from django.utils import timezone
+from .forms import MotherRegistrationForm, MotherUpdateForm, PregnancyForm
+from apps.users.views import role_required
 
 
-@login_required
-def mother_list(request):
+# ─────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────
+
+def _get_scoped_mothers(user):
     """
-    List all mothers in the nurse's facility with search and filtering.
+    Scope Mother queryset to user's facility.
+    Mirrors the _get_scoped_* pattern used across all apps.
     """
-    facility = request.user.facility
-    
-    # Base queryset
-    mothers = Mother.objects.filter(facility=facility).select_related('facility').order_by('-created_at')
-    
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        mothers = mothers.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(phone_number__icontains=search_query) |
-            Q(national_id__icontains=search_query)
-        )
-    
-    # Filter by pregnancy status
-    status_filter = request.GET.get('status', '')
-    if status_filter:
-        mothers = mothers.filter(pregnancies__status=status_filter).distinct()
-    
-    # Filter by risk level
-    risk_filter = request.GET.get('risk', '')
-    if risk_filter:
-        mothers = mothers.filter(pregnancies__risk_level=risk_filter).distinct()
-    
-    # Pagination
-    paginator = Paginator(mothers, 20)  # 20 mothers per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_title': 'Mother Records',
-        'mothers': page_obj,
-        'search_query': search_query,
-        'status_filter': status_filter,
-        'risk_filter': risk_filter,
-        'total_count': mothers.count(),
-    }
-    return render(request, 'mothers/mother_list.html', context)
+    qs = Mother.objects.select_related('facility', 'registered_by')
+    if user.role == 'MOH':
+        return qs.all()
+    return qs.filter(facility=user.facility)
 
 
-@login_required
-def mother_detail(request, pk):
+def _get_scoped_pregnancies(user):
     """
-    View detailed information about a specific mother.
+    Scope Pregnancy queryset to user's facility.
     """
-    mother = get_object_or_404(Mother, pk=pk, facility=request.user.facility)
-    
-    # Get all pregnancies for this mother
-    pregnancies = mother.pregnancies.all().order_by('-lmp')
-    
-    # Get active pregnancy if exists
-    active_pregnancy = pregnancies.filter(status='ACTIVE').first()
-    
-    context = {
-        'page_title': f'{mother.full_name} - Details',
-        'mother': mother,
-        'pregnancies': pregnancies,
+    qs = Pregnancy.objects.select_related('mother', 'facility', 'registered_by')
+    if user.role == 'MOH':
+        return qs.all()
+    return qs.filter(facility=user.facility)
+
+
+def _mother_context(mother):
+    """
+    Shared context for mother detail, update and pregnancy views.
+    Preloads related data used across multiple templates.
+    """
+    active_pregnancy = mother.active_pregnancy
+    return {
+        'mother':           mother,
         'active_pregnancy': active_pregnancy,
+        'pregnancies':      mother.pregnancies.order_by('-registration_date'),
+        'babies':           mother.babies.select_related('delivery').order_by(
+                                '-delivery__delivery_date'
+                            ),
     }
-    return render(request, 'mothers/mother_detail.html', context)
+
+
+# ─────────────────────────────────────────────
+# Mother Views
+# ─────────────────────────────────────────────
+
+@login_required
+def mother_list_view(request):
+    """
+    List mothers scoped to user's facility.
+    Supports ?q= search by name or phone number.
+    """
+    qs    = _get_scoped_mothers(request.user)
+    query = request.GET.get('q', '').strip()
+
+    if query:
+        qs = qs.filter(
+            # Search by first name, last name, or phone — OR across all three
+            first_name__icontains=query
+        ) | _get_scoped_mothers(request.user).filter(
+            last_name__icontains=query
+        ) | _get_scoped_mothers(request.user).filter(
+            phone_number__icontains=query
+        )
+
+    return render(request, 'mothers/mother_list.html', {
+        'mothers': qs.order_by('-registration_date'),
+        'query':   query,
+    })
 
 
 @login_required
-def mother_create(request):
-    """
-    Register a new mother with initial pregnancy.
-    """
-    if request.method == 'POST':
-        mother_form = MotherForm(request.POST)
-        pregnancy_form = PregnancyForm(request.POST)
-        
-        if mother_form.is_valid() and pregnancy_form.is_valid():
-            try:
-                # Save mother
-                mother = mother_form.save(commit=False)
-                mother.facility = request.user.facility
-                mother.registered_by = request.user
-                mother.save()
-                
-                # Save pregnancy
-                pregnancy = pregnancy_form.save(commit=False)
-                pregnancy.mother = mother
-                pregnancy.facility = request.user.facility  # CRITICAL FIX
-                pregnancy.registered_by = request.user
-                pregnancy.save()
-                
-                messages.success(request, f'Mother {mother.full_name} registered successfully!')
-                return redirect('mother_detail', pk=mother.pk)
-            except Exception as e:
-                messages.error(request, f'Error saving mother: {str(e)}')
-        else:
-            # Show specific field errors
-            if mother_form.errors:
-                for field, errors in mother_form.errors.items():
-                    for error in errors:
-                        messages.error(request, f'{field}: {error}')
-            if pregnancy_form.errors:
-                for field, errors in pregnancy_form.errors.items():
-                    for error in errors:
-                        messages.error(request, f'Pregnancy {field}: {error}')
-    else:
-        mother_form = MotherForm()
-        pregnancy_form = PregnancyForm()
-    
-    context = {
-        'page_title': 'Register New Mother',
-        'mother_form': mother_form,
-        'pregnancy_form': pregnancy_form,
-    }
-    return render(request, 'mothers/mother_create.html', context)
+def mother_detail_view(request, pk):
+    """Full detail view for a mother — includes pregnancies, babies, ANC summary."""
+    qs     = _get_scoped_mothers(request.user)
+    mother = get_object_or_404(qs, pk=pk)
+    return render(request, 'mothers/mother_detail.html', _mother_context(mother))
 
 
 @login_required
-def mother_edit(request, pk):
-    """
-    Edit mother information.
-    """
-    mother = get_object_or_404(Mother, pk=pk, facility=request.user.facility)
-    
-    if request.method == 'POST':
-        form = MotherForm(request.POST, instance=mother)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'Mother {mother.full_name} updated successfully!')
-            return redirect('mother_detail', pk=mother.pk)
-        else:
-            # Show specific field errors
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-    else:
-        form = MotherForm(instance=mother)
-    
-    context = {
-        'page_title': f'Edit {mother.full_name}',
-        'mother': mother,
-        'form': form,
-    }
-    return render(request, 'mothers/mother_edit.html', context)
+def mother_register_view(request):
+    """Register a new mother at the nurse's facility."""
+    form = MotherRegistrationForm(request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        mother = form.save(
+            facility      = request.user.facility,
+            registered_by = request.user,
+        )
+        messages.success(
+            request,
+            f"{mother.full_name} registered successfully. "
+            f"You can now register her pregnancy."
+        )
+        return redirect('mothers:register_pregnancy', mother_pk=mother.pk)
+
+    return render(request, 'mothers/mother_form.html', {
+        'form':       form,
+        'form_title': 'Register New Mother',
+    })
 
 
 @login_required
-def mother_delete(request, pk):
+def mother_update_view(request, pk):
+    """Update an existing mother's details."""
+    qs     = _get_scoped_mothers(request.user)
+    mother = get_object_or_404(qs, pk=pk)
+    form   = MotherUpdateForm(request.POST or None, instance=mother)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f"{mother.full_name}'s record updated successfully.")
+        return redirect('mothers:detail', pk=mother.pk)
+
+    return render(request, 'mothers/mother_form.html', {
+        'form':       form,
+        'form_title': f'Edit {mother.full_name}',
+        'mother':     mother,
+    })
+
+
+# ─────────────────────────────────────────────
+# Pregnancy Views
+# ─────────────────────────────────────────────
+
+@login_required
+def pregnancy_register_view(request, mother_pk):
     """
-    Delete a mother record.
+    Register a new pregnancy for an existing mother.
+    URL carries mother_pk — no mother selector in the form.
+    Guard: mother cannot have two active pregnancies simultaneously.
     """
-    mother = get_object_or_404(Mother, pk=pk, facility=request.user.facility)
-    
-    if request.method == 'POST':
-        mother_name = mother.full_name
-        mother.delete()
-        messages.success(request, f'Mother {mother_name} has been deleted.')
-        return redirect('mother_list')
-    
-    context = {
-        'page_title': f'Delete {mother.full_name}',
-        'mother': mother,
-    }
-    return render(request, 'mothers/mother_delete.html', context)
+    qs     = _get_scoped_mothers(request.user)
+    mother = get_object_or_404(qs, pk=mother_pk)
+
+    # Guard: one active pregnancy at a time
+    if mother.has_active_pregnancy:
+        messages.warning(
+            request,
+            f"{mother.full_name} already has an active pregnancy. "
+            f"Complete or close it before registering a new one."
+        )
+        return redirect('mothers:detail', pk=mother.pk)
+
+    form = PregnancyForm(request.POST or None, mother=mother)
+
+    if request.method == 'POST' and form.is_valid():
+        pregnancy = form.save(
+            mother        = mother,
+            facility      = request.user.facility,
+            registered_by = request.user,
+        )
+        messages.success(
+            request,
+            f"Pregnancy registered for {mother.full_name}. "
+            f"EDD: {pregnancy.edd.strftime('%d %b %Y')}. "
+            f"8 ANC contacts auto-generated."
+        )
+        return redirect('mothers:pregnancy_detail', pk=pregnancy.pk)
+
+    return render(request, 'mothers/pregnancy_form.html', {
+        'form':       form,
+        'mother':     mother,
+        'form_title': f'Register Pregnancy — {mother.full_name}',
+    })
+
+
+@login_required
+def pregnancy_detail_view(request, pk):
+    """
+    Full pregnancy detail — includes ANC visit schedule and delivery status.
+    """
+    qs        = _get_scoped_pregnancies(request.user)
+    pregnancy = get_object_or_404(qs, pk=pk)
+
+    anc_visits = pregnancy.anc_visits.order_by('visit_number').select_related(
+        'recorded_by'
+    )
+
+    return render(request, 'mothers/pregnancy_detail.html', {
+        'pregnancy':  pregnancy,
+        'mother':     pregnancy.mother,
+        'anc_visits': anc_visits,
+        'delivery':   getattr(pregnancy, 'delivery', None),
+    })
+
+
+@login_required
+def pregnancy_update_view(request, pk):
+    """
+    Update pregnancy details — risk level, notes, obstetric history.
+    Status updates (DELIVERED, MISCARRIAGE etc.) happen via delivery recording,
+    not this form — so status field is excluded.
+    """
+    qs        = _get_scoped_pregnancies(request.user)
+    pregnancy = get_object_or_404(qs, pk=pk)
+    form      = PregnancyForm(
+        request.POST or None,
+        instance=pregnancy,
+        mother=pregnancy.mother,
+    )
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Pregnancy record updated successfully.")
+        return redirect('mothers:pregnancy_detail', pk=pregnancy.pk)
+
+    return render(request, 'mothers/pregnancy_form.html', {
+        'form':       form,
+        'mother':     pregnancy.mother,
+        'pregnancy':  pregnancy,
+        'form_title': f'Edit Pregnancy — {pregnancy.mother.full_name}',
+        'is_update':  True,
+    })

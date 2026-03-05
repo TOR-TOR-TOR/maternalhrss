@@ -1,0 +1,241 @@
+{# templates/delivery/delivery_detail.html #}
+{% extends "base.html" %}
+{% block title %}Delivery — {{ mother.full_name }}{% endblock %}
+{% block page_heading %}Delivery Detail{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'mothers:pregnancy_detail' pregnancy.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+      <div>
+        <h1 class="font-display font-bold text-2xl text-gray-900">
+          Delivery — {{ mother.full_name }}
+        </h1>
+        <p class="text-gray-400 text-sm mt-0.5">
+          {{ delivery.delivery_date|date:"d M Y" }} at {{ delivery.delivery_time|time:"H:i" }}
+          · {{ pregnancy.gravida_para_display }}
+        </p>
+      </div>
+    </div>
+    <!-- Register baby button if babies still expected -->
+    {% if babies|length < delivery.number_of_babies %}
+    <a href="{% url 'delivery:register_baby' delivery.pk %}"
+       class="btn btn-sm text-white border-0 rounded-xl gap-2"
+       style="background:#0f6b4f">
+      + Register Baby
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- ── Complications alert ─────────────────────────────────── -->
+  {% if delivery.complications %}
+  <div class="alert alert-warning rounded-xl text-sm py-3 flex gap-3">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+      <p class="font-semibold">Complications Recorded</p>
+      <p class="mt-0.5 opacity-90">{{ delivery.complications }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- ── Left: Delivery Info ──────────────────────────────── -->
+    <div class="space-y-4">
+
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+          Delivery Details
+        </h2>
+        <dl class="space-y-3">
+          <div>
+            <dt class="text-xs text-gray-400">Outcome</dt>
+            <dd>
+              <span class="badge badge-sm border-0 font-medium
+                {% if delivery.delivery_outcome == 'LIVE' %}bg-green-50 text-green-700
+                {% elif delivery.delivery_outcome == 'STILLBIRTH' %}bg-red-50 text-red-600
+                {% else %}bg-amber-50 text-amber-600{% endif %}">
+                {{ delivery.get_delivery_outcome_display }}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-400">Type</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ delivery.get_delivery_type_display }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-400">Gestational Age</dt>
+            <dd class="text-sm font-medium text-gray-800">
+              {% if delivery.gestational_age_at_delivery %}
+                {{ delivery.gestational_age_at_delivery }} weeks
+                {% if delivery.is_preterm %}
+                  <span class="text-amber-500 text-xs">(Preterm)</span>
+                {% elif delivery.is_postterm %}
+                  <span class="text-amber-500 text-xs">(Post-term)</span>
+                {% else %}
+                  <span class="text-green-600 text-xs">(Term)</span>
+                {% endif %}
+              {% else %}—{% endif %}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-gray-400">Number of Babies</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ delivery.number_of_babies }}</dd>
+          </div>
+          {% if delivery.attended_by %}
+          <div>
+            <dt class="text-xs text-gray-400">Attended By</dt>
+            <dd class="text-sm text-gray-800">{{ delivery.attended_by.get_full_name }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+          Mother's Condition
+        </h2>
+        <dl class="space-y-3">
+          {% if delivery.mother_condition %}
+          <div>
+            <dt class="text-xs text-gray-400">Condition</dt>
+            <dd class="text-sm font-medium text-gray-800">{{ delivery.mother_condition }}</dd>
+          </div>
+          {% endif %}
+          {% if delivery.blood_loss_ml %}
+          <div>
+            <dt class="text-xs text-gray-400">Blood Loss</dt>
+            <dd class="text-sm font-medium
+              {% if delivery.blood_loss_ml > 500 %}text-red-600{% else %}text-gray-800{% endif %}">
+              {{ delivery.blood_loss_ml }} ml
+              {% if delivery.blood_loss_ml > 500 %}
+              <span class="text-xs">(PPH)</span>
+              {% endif %}
+            </dd>
+          </div>
+          {% endif %}
+          <div>
+            <dt class="text-xs text-gray-400">Placenta Complete</dt>
+            <dd>
+              {% if delivery.placenta_complete %}
+              <span class="badge badge-sm bg-green-50 text-green-700 border-0">✓ Complete</span>
+              {% else %}
+              <span class="badge badge-sm bg-red-50 text-red-600 border-0">✗ Incomplete</span>
+              {% endif %}
+            </dd>
+          </div>
+          {% if delivery.placenta_weight_grams %}
+          <div>
+            <dt class="text-xs text-gray-400">Placenta Weight</dt>
+            <dd class="text-sm text-gray-800">{{ delivery.placenta_weight_grams }}g</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </div>
+
+      {% if delivery.notes %}
+      <div class="page-card">
+        <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3">Notes</h2>
+        <p class="text-sm text-gray-700 leading-relaxed">{{ delivery.notes }}</p>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── Right: Babies ────────────────────────────────────── -->
+    <div class="lg:col-span-2">
+      <div class="page-card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display font-semibold text-base text-gray-800">
+            Babies
+            <span class="text-gray-400 font-normal text-sm ml-1">
+              ({{ babies|length }} of {{ delivery.number_of_babies }} registered)
+            </span>
+          </h2>
+          {% if babies|length < delivery.number_of_babies %}
+          <a href="{% url 'delivery:register_baby' delivery.pk %}"
+             class="btn btn-xs rounded-lg text-white border-0"
+             style="background:#0f6b4f">+ Register</a>
+          {% endif %}
+        </div>
+
+        {% if babies %}
+        <div class="space-y-4">
+          {% for baby in babies %}
+          <div class="rounded-xl border border-gray-100 p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                     style="background:{% if baby.gender == 'M' %}#3b82f6{% else %}#ec4899{% endif %}">
+                  {{ baby.get_gender_display|slice:":1" }}
+                </div>
+                <div>
+                  <p class="font-medium text-sm text-gray-800">{{ baby.display_name }}</p>
+                  <p class="text-xs text-gray-400">
+                    {{ baby.get_gender_display }} · {{ baby.get_age_display }}
+                  </p>
+                </div>
+              </div>
+              <a href="{% url 'delivery:baby_detail' baby.pk %}"
+                 class="btn btn-xs btn-ghost rounded-lg text-gray-400">View →</a>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="bg-gray-50 rounded-xl p-2.5 text-center">
+                <p class="text-base font-display font-bold text-gray-800">
+                  {{ baby.birth_weight_kg }}kg
+                </p>
+                <p class="text-xs text-gray-400">Birth Weight</p>
+                {% if baby.is_low_birth_weight %}
+                <p class="text-xs text-amber-500 mt-0.5">Low</p>
+                {% endif %}
+              </div>
+              <div class="bg-gray-50 rounded-xl p-2.5 text-center">
+                <p class="text-base font-display font-bold text-gray-800">
+                  {{ baby.apgar_score_1min|default:"—" }}
+                </p>
+                <p class="text-xs text-gray-400">APGAR 1min</p>
+              </div>
+              <div class="bg-gray-50 rounded-xl p-2.5 text-center">
+                <p class="text-base font-display font-bold text-gray-800">
+                  {{ baby.apgar_score_5min|default:"—" }}
+                </p>
+                <p class="text-xs text-gray-400">APGAR 5min</p>
+              </div>
+            </div>
+
+            {% if baby.health_condition %}
+            <p class="text-xs text-gray-500 mt-2">
+              Condition: {{ baby.health_condition }}
+            </p>
+            {% endif %}
+            {% if baby.required_resuscitation %}
+            <span class="badge badge-sm bg-red-50 text-red-600 border-0 mt-2">
+              Required Resuscitation
+            </span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10 text-gray-400">
+          <p class="text-sm">No babies registered yet.</p>
+          <a href="{% url 'delivery:register_baby' delivery.pk %}"
+             class="btn btn-sm mt-4 text-white border-0 rounded-xl"
+             style="background:#0f6b4f">Register Baby</a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,170 @@
+{# templates/delivery/baby_form.html #}
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_heading %}Register Baby{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'delivery:detail' delivery.pk %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">{{ form_title }}</h1>
+      <p class="text-gray-400 text-sm mt-0.5">
+        Mother: {{ mother.full_name }} · {{ delivery.delivery_date|date:"d M Y" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Progress indicator for multiple babies ──────────────── -->
+  {% if expected_count > 1 %}
+  <div class="flex items-center gap-2">
+    {% for i in expected_count|rjust:1 %}
+    <div class="flex-1 h-1.5 rounded-full
+      {% if forloop.counter <= registered_count %}bg-green-400
+      {% elif forloop.counter == registered_count|add:1 %}{% else %}bg-gray-200{% endif %}"
+      style="{% if forloop.counter == registered_count|add:1 %}background:#0f6b4f{% endif %}">
+    </div>
+    {% endfor %}
+    <span class="text-xs text-gray-400 flex-shrink-0">
+      {{ registered_count|add:1 }} of {{ expected_count }}
+    </span>
+  </div>
+  {% endif %}
+
+  <!-- ── Auto-immunization notice ────────────────────────────── -->
+  <div class="rounded-xl px-4 py-3 text-sm flex items-start gap-2"
+       style="background:#e6f4ef; color:#0f6b4f">
+    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    Kenya EPI immunization schedule (16 vaccines) will be auto-generated on registration.
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Identity ─────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Baby Identity <span class="text-gray-400 font-normal normal-case text-xs">(name can be added later)</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "first_name,middle_name,last_name,gender,birth_order" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Birth Measurements ────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Birth Measurements
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "birth_weight_grams,birth_length_cm,head_circumference_cm,apgar_score_1min,apgar_score_5min" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </span>
+            </label>
+            {{ field }}
+            {% if field.help_text %}
+            <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Health Condition ──────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Health at Birth
+      </h2>
+      <div class="space-y-4">
+        {% for field in form %}
+          {% if field.name == "health_condition" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% elif field.name == "complications" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% elif field.name == "required_resuscitation" %}
+          <div class="flex items-center gap-3 bg-red-50 rounded-xl px-4 py-3">
+            {{ field }}
+            <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">
+              {{ field.label }}
+            </label>
+          </div>
+          {% elif field.name == "birth_notification_number" %}
+          <div class="max-w-xs">
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Non-field errors ─────────────────────────────────── -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-error text-sm py-2.5 rounded-xl mb-4">
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'delivery:detail' delivery.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6"
+              style="background:#0f6b4f">
+        Register Baby
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

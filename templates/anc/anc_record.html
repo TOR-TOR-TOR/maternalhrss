@@ -1,0 +1,190 @@
+{# templates/anc/anc_record.html #}
+{% load anc_extras %}
+{% extends "base.html" %}
+{% block title %}{% if is_update %}Edit{% else %}Record{% endif %} ANC {{ visit.visit_number }} — {{ mother.full_name }}{% endblock %}
+{% block page_heading %}{% if is_update %}Edit ANC Visit{% else %}Record ANC Visit{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'anc:detail' visit.pk %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">
+        {% if is_update %}Edit{% else %}Record{% endif %} ANC Contact {{ visit.visit_number }}
+      </h1>
+      <p class="text-gray-400 text-sm mt-0.5">
+        {{ mother.full_name }} · {{ pregnancy.gravida_para_display }}
+        · {{ pregnancy.gestational_age_weeks }} weeks
+        · Scheduled {{ visit.scheduled_date|date:"d M Y" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Risk alert if high risk ────────────────────────────── -->
+  {% if pregnancy.is_high_risk %}
+  <div class="rounded-xl px-4 py-3 text-sm flex items-center gap-2 bg-red-50 text-red-700">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <span><strong>High Risk Pregnancy</strong> — {{ pregnancy.risk_factors }}</span>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Visit Date ────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Visit Date
+      </h2>
+      {% with field=form.actual_visit_date %}
+      <div class="max-w-xs">
+        <label class="label py-0 mb-1">
+          <span class="label-text text-xs font-medium text-gray-600">{{ field.label }} *</span>
+        </label>
+        {{ field }}
+        {% if field.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+      {% endwith %}
+    </div>
+
+    <!-- ── Clinical Measurements ─────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Clinical Measurements
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for name in "weight_kg,blood_pressure,hemoglobin,fundal_height" %}
+        {% with field=form|getfield:name %}
+        <div>
+          <label class="label py-0 mb-1">
+            <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+          {% endif %}
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+      <!-- Fetal Heartbeat -->
+      <div class="mt-4 flex items-center gap-3">
+        {{ form.fetal_heartbeat }}
+        <label for="{{ form.fetal_heartbeat.id_for_label }}"
+               class="text-sm text-gray-700">{{ form.fetal_heartbeat.label }}</label>
+      </div>
+    </div>
+
+    <!-- ── Danger Signs ──────────────────────────────────────── -->
+    <div class="page-card mb-4" id="danger-section">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Danger Signs
+      </h2>
+      <div class="flex items-center gap-3 mb-3">
+        {{ form.has_danger_signs }}
+        <label for="{{ form.has_danger_signs.id_for_label }}"
+               class="text-sm font-medium text-gray-700">
+          {{ form.has_danger_signs.label }}
+        </label>
+      </div>
+      <div id="danger-notes-wrapper"
+           class="{% if not form.has_danger_signs.value %}hidden{% endif %}">
+        <label class="label py-0 mb-1">
+          <span class="label-text text-xs font-medium text-gray-600">
+            {{ form.danger_signs_notes.label }} *
+          </span>
+        </label>
+        {{ form.danger_signs_notes }}
+        {% if form.danger_signs_notes.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ form.danger_signs_notes.errors.0 }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Interventions & Supplements ───────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Interventions & Supplements
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {% for name, label in supplement_fields %}
+        {% with field=form|getfield:name %}
+        <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+          {{ field }}
+          <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">{{ label }}</label>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Notes & Next Visit ────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Notes & Next Visit
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <label class="label py-0 mb-1">
+            <span class="label-text text-xs font-medium text-gray-600">
+              {{ form.clinical_notes.label }}
+            </span>
+          </label>
+          {{ form.clinical_notes }}
+        </div>
+        <div class="max-w-xs">
+          <label class="label py-0 mb-1">
+            <span class="label-text text-xs font-medium text-gray-600">
+              {{ form.next_visit_date.label }}
+            </span>
+          </label>
+          {{ form.next_visit_date }}
+          {% if form.next_visit_date.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ form.next_visit_date.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Non-field errors ─────────────────────────────────── -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-error text-sm py-2.5 rounded-xl mb-4">
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'anc:detail' visit.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6"
+              style="background:#0f6b4f">
+        {% if is_update %}Save Changes{% else %}Record Visit{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Toggle danger notes visibility -->
+<script>
+  const dangerCheckbox = document.getElementById('{{ form.has_danger_signs.id_for_label }}');
+  const dangerNotes    = document.getElementById('danger-notes-wrapper');
+
+  function toggleDangerNotes() {
+    dangerNotes.classList.toggle('hidden', !dangerCheckbox.checked);
+  }
+
+  dangerCheckbox.addEventListener('change', toggleDangerNotes);
+  toggleDangerNotes();
+</script>
+{% endblock %}

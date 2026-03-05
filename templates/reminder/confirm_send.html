@@ -1,0 +1,81 @@
+{# templates/reminders/confirm_send.html #}
+{% extends "base.html" %}
+{% block title %}Send Reminder{% endblock %}
+{% block page_heading %}Send Reminder{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-lg mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="javascript:history.back()"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <h1 class="font-display font-bold text-2xl text-gray-900">Send Reminder</h1>
+  </div>
+
+  <!-- ── Context card ────────────────────────────────────────── -->
+  <div class="page-card border-l-4" style="border-left-color:#0f6b4f">
+    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Reminder for</p>
+    <p class="font-display font-semibold text-gray-800">{{ context_label }}</p>
+    <div class="flex gap-6 mt-3 text-sm text-gray-600">
+      <div>
+        <p class="text-xs text-gray-400">Scheduled Date</p>
+        <p class="font-medium text-gray-800">{{ scheduled_date|date:"d M Y" }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400">Phone Number</p>
+        <p class="font-medium font-mono text-gray-800">{{ phone_number }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form ────────────────────────────────────────────────── -->
+  <form method="post" action="{{ action_url }}" novalidate>
+    {% csrf_token %}
+
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Reminder Type
+      </h2>
+      <div class="space-y-2">
+        {% for value, label in reminder_types %}
+        <label class="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 cursor-pointer
+                      hover:border-[#0f6b4f] hover:bg-[#e6f4ef] transition-colors has-[:checked]:border-[#0f6b4f] has-[:checked]:bg-[#e6f4ef]">
+          <input type="radio" name="reminder_type" value="{{ value }}"
+                 class="radio radio-sm" style="--chkbg:#0f6b4f"
+                 {% if forloop.first %}checked{% endif %}/>
+          <div>
+            <p class="text-sm font-medium text-gray-800">{{ label }}</p>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Warning ──────────────────────────────────────────── -->
+    <div class="rounded-xl px-4 py-3 text-sm flex items-start gap-2 bg-amber-50 text-amber-700 mb-4">
+      <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      This will queue an SMS to <strong>{{ phone_number }}</strong>. Ensure the number is correct before sending.
+    </div>
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="javascript:history.back()"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6 gap-2"
+              style="background:#0f6b4f">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        Send Reminder
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

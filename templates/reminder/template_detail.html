@@ -1,0 +1,98 @@
+{# templates/reminders/template_detail.html #}
+{% extends "base.html" %}
+{% block title %}{{ template.name }}{% endblock %}
+{% block page_heading %}SMS Template{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'reminders:template_list' %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+      <div>
+        <h1 class="font-display font-bold text-2xl text-gray-900">{{ template.name }}</h1>
+        <p class="text-gray-400 text-sm mt-0.5">{{ template.get_reminder_type_display }}</p>
+      </div>
+    </div>
+    <span class="badge border-0 font-medium
+      {% if template.is_active %}bg-green-50 text-green-700{% else %}bg-gray-100 text-gray-400{% endif %}">
+      {% if template.is_active %}Active{% else %}Inactive{% endif %}
+    </span>
+  </div>
+
+  <!-- ── Message Template ────────────────────────────────────── -->
+  <div class="page-card">
+    <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3">
+      Message Template
+    </h2>
+    <div class="bg-gray-50 rounded-xl p-4">
+      <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{{ template.message_template }}</p>
+    </div>
+    <p class="text-xs text-gray-400 mt-2">{{ template.message_template|length }} characters</p>
+  </div>
+
+  <!-- ── Placeholders Reference ──────────────────────────────── -->
+  <div class="page-card">
+    <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3">
+      Available Placeholders
+    </h2>
+    <div class="grid grid-cols-2 gap-2">
+      {% for placeholder, description in placeholders %}
+      <div class="flex items-start gap-2 bg-gray-50 rounded-lg px-3 py-2">
+        <code class="text-xs font-mono text-[#0f6b4f] flex-shrink-0">{{ placeholder }}</code>
+        <span class="text-xs text-gray-500">{{ description }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── Configuration ───────────────────────────────────────── -->
+  <div class="page-card">
+    <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+      Configuration
+    </h2>
+    <dl class="grid grid-cols-2 gap-x-6 gap-y-3">
+      <div>
+        <dt class="text-xs text-gray-400">Type</dt>
+        <dd class="text-sm font-medium text-gray-800">{{ template.get_reminder_type_display }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-gray-400">Days Before</dt>
+        <dd class="text-sm font-medium text-gray-800">
+          {{ template.days_before }} day{{ template.days_before|pluralize }} before appointment
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs text-gray-400">Send Time</dt>
+        <dd class="text-sm font-medium text-gray-800">{{ template.send_time|time:"H:i" }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-gray-400">Total Sent</dt>
+        <dd class="text-sm font-medium text-gray-800">{{ sent_count }} SMS</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-gray-400">Last Updated</dt>
+        <dd class="text-sm text-gray-600">{{ template.updated_at|date:"d M Y" }}</dd>
+      </div>
+    </dl>
+    {% if template.description %}
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <p class="text-xs text-gray-400 mb-1">Internal Notes</p>
+      <p class="text-sm text-gray-600">{{ template.description }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── Edit notice ─────────────────────────────────────────── -->
+  <div class="rounded-xl px-4 py-3 text-sm flex items-start gap-2 bg-gray-50 text-gray-500">
+    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    Templates are edited via Django Admin. Contact a system administrator to update message content.
+  </div>
+
+</div>
+{% endblock %}

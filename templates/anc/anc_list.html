@@ -1,0 +1,123 @@
+{# templates/anc/anc_list.html #}
+{% extends "base.html" %}
+{% block title %}ANC Visits{% endblock %}
+{% block page_heading %}ANC Visits{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">ANC Visits</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ visits|length }} visit{{ visits|length|pluralize }} shown</p>
+    </div>
+  </div>
+
+  <!-- ── Filter Tabs ─────────────────────────────────────────── -->
+  <div class="flex gap-2 flex-wrap">
+    {% for slug, label, color in filters %}
+    <a href="?status={{ slug }}"
+       class="btn btn-sm rounded-xl border font-medium text-sm
+         {% if active_filter == slug %}text-white border-0{% else %}btn-ghost border-gray-200 text-gray-500{% endif %}"
+       {% if active_filter == slug %}style="background:#0f6b4f"{% endif %}>
+      {{ label }}
+    </a>
+    {% endfor %}
+    <a href="?"
+       class="btn btn-sm rounded-xl btn-ghost border border-gray-200 text-gray-500 font-medium text-sm
+         {% if not active_filter %}font-semibold{% endif %}">
+      All
+    </a>
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────── -->
+  <div class="page-card p-0 overflow-hidden">
+    {% if visits %}
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Mother</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Contact</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Scheduled</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Status</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Gestation</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Risk</th>
+          <th class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for visit in visits %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder flex-shrink-0">
+                <div class="rounded-full w-8 text-white text-xs font-bold"
+                     style="background:#0f6b4f">
+                  <span>{{ visit.pregnancy.mother.first_name|slice:":1" }}{{ visit.pregnancy.mother.last_name|slice:":1" }}</span>
+                </div>
+              </div>
+              <div>
+                <p class="font-medium text-sm text-gray-800">{{ visit.pregnancy.mother.full_name }}</p>
+                <p class="text-xs text-gray-400">{{ visit.pregnancy.mother.phone_number }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3">
+            <span class="font-display font-bold text-gray-800">ANC {{ visit.visit_number }}</span>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ visit.scheduled_date|date:"d M Y" }}</td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0 font-medium
+              {% if visit.attended %}bg-green-50 text-green-700
+              {% elif visit.missed %}bg-red-50 text-red-600
+              {% elif visit.is_overdue %}bg-amber-50 text-amber-600
+              {% elif visit.scheduled_date == today %}bg-blue-50 text-blue-600
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ visit.status }}
+            </span>
+            {% if visit.has_danger_signs %}
+            <span class="badge badge-sm bg-red-50 text-red-600 border-0 ml-1">⚠ Danger</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ visit.pregnancy.gestational_age_weeks }}wks</td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0
+              {% if visit.pregnancy.risk_level == 'HIGH' %}bg-red-50 text-red-600
+              {% elif visit.pregnancy.risk_level == 'MEDIUM' %}bg-amber-50 text-amber-600
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ visit.pregnancy.get_risk_level_display }}
+            </span>
+          </td>
+          <td class="py-3 px-6">
+            {% if visit.attended %}
+            <a href="{% url 'anc:detail' visit.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-400">View</a>
+            {% else %}
+            <a href="{% url 'anc:record_visit' visit.pk %}"
+               class="btn btn-xs rounded-lg text-white border-0"
+               style="background:#0f6b4f">Record</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      <p class="text-sm">No ANC visits found
+        {% if active_filter %}for filter <strong>"{{ active_filter }}"</strong>{% endif %}.
+      </p>
+      {% if active_filter %}
+      <a href="?" class="text-sm mt-2 inline-block" style="color:#0f6b4f">Clear filter</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

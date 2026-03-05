@@ -1,0 +1,170 @@
+{# templates/immunization/immunization_record.html #}
+{% extends "base.html" %}
+{% block title %}{% if is_update %}Edit{% else %}Record{% endif %} — {{ vaccine.name }}{% endblock %}
+{% block page_heading %}{% if is_update %}Edit Vaccine Record{% else %}Record Vaccine{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'immunization:detail' schedule.pk %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">
+        {% if is_update %}Edit{% else %}Record{% endif %} — {{ vaccine.name }}
+      </h1>
+      <p class="text-gray-400 text-sm mt-0.5">
+        {{ baby.display_name }} · {{ baby.get_age_display }}
+        · Scheduled {{ schedule.scheduled_date|date:"d M Y" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Vaccine summary banner ──────────────────────────────── -->
+  <div class="rounded-xl px-4 py-3 text-sm grid grid-cols-3 gap-3"
+       style="background:#e6f4ef">
+    <div>
+      <p class="text-xs text-gray-500">Recommended Age</p>
+      <p class="font-semibold" style="color:#0f6b4f">{{ vaccine.age_display }}</p>
+    </div>
+    {% if vaccine.route %}
+    <div>
+      <p class="text-xs text-gray-500">Route</p>
+      <p class="font-semibold" style="color:#0f6b4f">{{ vaccine.route }}</p>
+    </div>
+    {% endif %}
+    {% if vaccine.dosage %}
+    <div>
+      <p class="text-xs text-gray-500">Dosage</p>
+      <p class="font-semibold" style="color:#0f6b4f">{{ vaccine.dosage }}</p>
+    </div>
+    {% endif %}
+    {% if vaccine.site %}
+    <div>
+      <p class="text-xs text-gray-500">Site</p>
+      <p class="font-semibold" style="color:#0f6b4f">{{ vaccine.site }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Administration Date ───────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Administration Date
+      </h2>
+      <div class="max-w-xs">
+        {% with field=form.administration_date %}
+        <label class="label py-0 mb-1">
+          <span class="label-text text-xs font-medium text-gray-600">{{ field.label }} *</span>
+        </label>
+        {{ field }}
+        {% if field.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+
+    <!-- ── Batch Details ─────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Batch Details <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% with field=form.batch_number %}
+        <div>
+          <label class="label py-0 mb-1">
+            <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+          {% endif %}
+        </div>
+        {% endwith %}
+        {% with field=form.expiry_date %}
+        <div>
+          <label class="label py-0 mb-1">
+            <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+          {% endif %}
+        </div>
+        {% endwith %}
+      </div>
+    </div>
+
+    <!-- ── Adverse Event ─────────────────────────────────────── -->
+    <div class="page-card mb-4" id="adverse-section">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Adverse Event
+      </h2>
+      <div class="flex items-center gap-3 mb-3">
+        {{ form.adverse_event }}
+        <label for="{{ form.adverse_event.id_for_label }}"
+               class="text-sm font-medium text-gray-700">
+          {{ form.adverse_event.label }}
+        </label>
+      </div>
+      <div id="adverse-details-wrapper"
+           class="{% if not form.adverse_event.value %}hidden{% endif %}">
+        <label class="label py-0 mb-1">
+          <span class="label-text text-xs font-medium text-gray-600">
+            {{ form.adverse_event_details.label }} *
+          </span>
+        </label>
+        {{ form.adverse_event_details }}
+        {% if form.adverse_event_details.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ form.adverse_event_details.errors.0 }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── Notes ────────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Notes <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+      </h2>
+      {{ form.notes }}
+    </div>
+
+    <!-- ── Non-field errors ─────────────────────────────────── -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-error text-sm py-2.5 rounded-xl mb-4">
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% url 'immunization:detail' schedule.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6"
+              style="background:#0f6b4f">
+        {% if is_update %}Save Changes{% else %}Record Vaccine{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Toggle adverse event details -->
+<script>
+  const adverseCheckbox = document.getElementById('{{ form.adverse_event.id_for_label }}');
+  const adverseDetails  = document.getElementById('adverse-details-wrapper');
+
+  function toggleAdverseDetails() {
+    adverseDetails.classList.toggle('hidden', !adverseCheckbox.checked);
+  }
+
+  adverseCheckbox.addEventListener('change', toggleAdverseDetails);
+  toggleAdverseDetails();
+</script>
+{% endblock %}

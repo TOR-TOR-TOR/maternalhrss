@@ -1,100 +1,79 @@
 # apps/anc/forms.py
 from django import forms
 from .models import ANCVisit
+from apps.users.forms import apply_tailwind
 
 
-class ANCVisitForm(forms.ModelForm):
+# ─────────────────────────────────────────────
+# Field Groups — single source of truth for
+# which fields belong to each form section.
+# Used by both the form and the template.
+# ─────────────────────────────────────────────
+
+CLINICAL_FIELDS    = ['actual_visit_date', 'weight_kg', 'blood_pressure',
+                      'hemoglobin', 'fundal_height', 'fetal_heartbeat']
+
+DANGER_FIELDS      = ['has_danger_signs', 'danger_signs_notes']
+
+SUPPLEMENT_FIELDS  = ['iron_given', 'folic_acid_given',
+                      'deworming_done', 'tetanus_vaccine_given']
+
+NOTES_FIELDS       = ['clinical_notes', 'next_visit_date']
+
+ALL_RECORD_FIELDS  = CLINICAL_FIELDS + DANGER_FIELDS + SUPPLEMENT_FIELDS + NOTES_FIELDS
+
+
+class ANCVisitRecordForm(forms.ModelForm):
     """
-    Form for recording ANC visit data.
+    Used by nurses to record an attended ANC visit.
+    The visit itself already exists (auto-generated at pregnancy registration).
+    This form captures clinical measurements, danger signs, supplements, and notes.
+
+    NOT used to create visits — those are auto-generated via signal.
     """
+
     class Meta:
-        model = ANCVisit
-        fields = [
-            'scheduled_date',
-            'weight_kg',
-            'blood_pressure',
-            'hemoglobin',
-            'fundal_height',
-            'fetal_heartbeat',
-            'iron_given',
-            'folic_acid_given',
-            'deworming_done',
-            'tetanus_vaccine_given',
-            'has_danger_signs',
-            'danger_signs_notes',
-            'clinical_notes',
-            'next_visit_date',
-        ]
+        model  = ANCVisit
+        fields = ALL_RECORD_FIELDS
         widgets = {
-            'scheduled_date': forms.DateInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'type': 'date'
-            }),
-            'weight_kg': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Weight in kg',
-                'step': '0.1',
-                'min': '30',
-                'max': '200'
-            }),
-            'blood_pressure': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'e.g., 120/80'
-            }),
-            'hemoglobin': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Hemoglobin level (g/dL)',
-                'step': '0.1',
-                'min': '5',
-                'max': '20'
-            }),
-            'fundal_height': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'placeholder': 'Fundal height (cm)',
-                'min': '10',
-                'max': '50'
-            }),
-            'fetal_heartbeat': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
-            }),
-            'iron_given': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
-            }),
-            'folic_acid_given': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
-            }),
-            'deworming_done': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
-            }),
-            'tetanus_vaccine_given': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500'
-            }),
-            'has_danger_signs': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500'
-            }),
-            'danger_signs_notes': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'rows': '3',
-                'placeholder': 'Describe any danger signs observed...'
-            }),
-            'clinical_notes': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'rows': '4',
-                'placeholder': 'Additional clinical notes, observations, or recommendations...'
-            }),
-            'next_visit_date': forms.DateInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500',
-                'type': 'date'
-            }),
+            'actual_visit_date':   forms.DateInput(attrs={'type': 'date'}),
+            'next_visit_date':     forms.DateInput(attrs={'type': 'date'}),
+            'weight_kg':           forms.NumberInput(attrs={'placeholder': 'e.g. 65.5', 'step': '0.01'}),
+            'blood_pressure':      forms.TextInput(attrs={'placeholder': 'e.g. 120/80'}),
+            'hemoglobin':          forms.NumberInput(attrs={'placeholder': 'e.g. 11.5', 'step': '0.1'}),
+            'fundal_height':       forms.NumberInput(attrs={'placeholder': 'cm'}),
+            'danger_signs_notes':  forms.Textarea(attrs={'rows': 3, 'placeholder': 'Describe danger signs observed…'}),
+            'clinical_notes':      forms.Textarea(attrs={'rows': 4, 'placeholder': 'Clinical observations and notes…'}),
         }
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # actual_visit_date is required when recording a visit
+        self.fields['actual_visit_date'].required = True
+        apply_tailwind(self)
+
     def clean(self):
         cleaned_data = super().clean()
-        has_danger_signs = cleaned_data.get('has_danger_signs')
-        danger_signs_notes = cleaned_data.get('danger_signs_notes')
-        
-        # If danger signs are checked, notes are required
-        if has_danger_signs and not danger_signs_notes:
-            self.add_error('danger_signs_notes', 'Please describe the danger signs observed.')
-        
+        has_danger   = cleaned_data.get('has_danger_signs')
+        danger_notes = cleaned_data.get('danger_signs_notes', '').strip()
+
+        if has_danger and not danger_notes:
+            self.add_error(
+                'danger_signs_notes',
+                'Please describe the danger signs observed.'
+            )
         return cleaned_data
+
+    def save(self, commit=True, recorded_by=None):
+        """
+        Mark visit as attended and set recorded_by before saving.
+        Pass recorded_by=request.user from the view.
+        """
+        visit = super().save(commit=False)
+        visit.attended    = True
+        visit.missed      = False
+        if recorded_by:
+            visit.recorded_by = recorded_by
+        if commit:
+            visit.save()
+        return visit

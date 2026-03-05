@@ -1,0 +1,139 @@
+{# templates/reminders/reminder_list.html #}
+{% extends "base.html" %}
+{% block title %}SMS Reminders{% endblock %}
+{% block page_heading %}SMS Reminders{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">SMS Reminders</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ reminders|length }} message{{ reminders|length|pluralize }} shown</p>
+    </div>
+    {% if user.role != 'NURSE' %}
+    <a href="{% url 'reminders:template_list' %}"
+       class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">
+      Manage Templates
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- ── Filters ─────────────────────────────────────────────── -->
+  <div class="flex flex-wrap gap-3">
+
+    <!-- Status filter -->
+    <div class="flex gap-1.5">
+      <a href="?{% if type_filter %}type={{ type_filter }}&{% endif %}"
+         class="btn btn-xs rounded-lg font-medium
+           {% if not status_filter %}text-white border-0{% else %}btn-ghost border border-gray-200 text-gray-500{% endif %}"
+         {% if not status_filter %}style="background:#0f6b4f"{% endif %}>
+        All Status
+      </a>
+      {% for value, label in status_choices %}
+      <a href="?status={{ value }}{% if type_filter %}&type={{ type_filter }}{% endif %}"
+         class="btn btn-xs rounded-lg font-medium
+           {% if status_filter == value %}text-white border-0{% else %}btn-ghost border border-gray-200 text-gray-500{% endif %}"
+         {% if status_filter == value %}style="background:#0f6b4f"{% endif %}>
+        {{ label }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Type filter -->
+    <select onchange="window.location='?type='+this.value+'{% if status_filter %}&status={{ status_filter }}{% endif %}'"
+            class="select select-bordered select-xs rounded-lg text-sm border-gray-200 bg-white">
+      <option value="">All Types</option>
+      {% for value, label in type_choices %}
+      <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>
+        {{ label }}
+      </option>
+      {% endfor %}
+    </select>
+
+    {% if status_filter or type_filter %}
+    <a href="?" class="btn btn-xs btn-ghost rounded-lg text-gray-400">Clear</a>
+    {% endif %}
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────── -->
+  <div class="page-card p-0 overflow-hidden">
+    {% if reminders %}
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Mother</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Type</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Phone</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Scheduled</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Status</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Source</th>
+          <th class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for reminder in reminders %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-3">
+              <div class="avatar placeholder flex-shrink-0">
+                <div class="rounded-full w-8 text-white text-xs font-bold"
+                     style="background:#0f6b4f">
+                  <span>{{ reminder.mother.first_name|slice:":1" }}{{ reminder.mother.last_name|slice:":1" }}</span>
+                </div>
+              </div>
+              <p class="font-medium text-sm text-gray-800">{{ reminder.mother.full_name }}</p>
+            </div>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ reminder.get_reminder_type_display }}</td>
+          <td class="py-3 text-sm text-gray-500 font-mono">{{ reminder.phone_number }}</td>
+          <td class="py-3 text-sm text-gray-600">
+            {{ reminder.scheduled_datetime|date:"d M Y" }}
+            <span class="block text-xs text-gray-400">{{ reminder.scheduled_datetime|time:"H:i" }}</span>
+          </td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0 font-medium
+              {% if reminder.delivery_status == 'DELIVERED' %}bg-green-50 text-green-700
+              {% elif reminder.delivery_status == 'SENT' %}bg-blue-50 text-blue-600
+              {% elif reminder.delivery_status == 'PENDING' %}bg-gray-100 text-gray-500
+              {% elif reminder.delivery_status == 'FAILED' %}bg-red-50 text-red-600
+              {% else %}bg-amber-50 text-amber-600{% endif %}">
+              {{ reminder.get_delivery_status_display }}
+            </span>
+            {% if reminder.retry_count %}
+            <span class="text-xs text-gray-400 ml-1">×{{ reminder.retry_count }}</span>
+            {% endif %}
+          </td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0
+              {% if reminder.is_manual %}bg-purple-50 text-purple-600{% else %}bg-gray-100 text-gray-400{% endif %}">
+              {% if reminder.is_manual %}Manual{% else %}Auto{% endif %}
+            </span>
+          </td>
+          <td class="py-3 px-6">
+            <a href="{% url 'reminders:detail' reminder.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-400">View →</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      <p class="text-sm">No reminders found
+        {% if status_filter or type_filter %}for the selected filters{% endif %}.
+      </p>
+      {% if status_filter or type_filter %}
+      <a href="?" class="text-sm mt-2 inline-block" style="color:#0f6b4f">Clear filters</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

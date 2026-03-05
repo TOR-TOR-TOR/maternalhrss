@@ -1,0 +1,172 @@
+{# templates/immunization/immunization_detail.html #}
+{% extends "base.html" %}
+{% block title %}{{ vaccine.name }} — {{ baby.display_name }}{% endblock %}
+{% block page_heading %}Immunization Detail{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="{% url 'delivery:baby_detail' baby.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+      <div>
+        <h1 class="font-display font-bold text-2xl text-gray-900">
+          {{ vaccine.name }}
+          <span class="badge badge-sm border-0 ml-2 font-medium
+            {% if schedule.administered %}bg-green-50 text-green-700
+            {% elif schedule.missed %}bg-red-50 text-red-600
+            {% elif schedule.is_overdue %}bg-amber-50 text-amber-600
+            {% else %}bg-gray-100 text-gray-500{% endif %}">
+            {{ schedule.status }}
+          </span>
+        </h1>
+        <p class="text-gray-400 text-sm mt-0.5">
+          {{ baby.display_name }} · {{ baby.get_age_display }}
+          · Mother: {{ mother.full_name }}
+        </p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      {% if schedule.administered %}
+      <a href="{% url 'immunization:update' schedule.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">Edit</a>
+      {% else %}
+      <a href="{% url 'immunization:record' schedule.pk %}"
+         class="btn btn-sm text-white border-0 rounded-xl"
+         style="background:#0f6b4f">Record Vaccine</a>
+      {% endif %}
+      <a href="{% url 'reminders:send_vaccine' schedule.pk %}"
+         class="btn btn-sm btn-ghost rounded-xl border border-gray-200 text-gray-600">
+        Send Reminder
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Adverse Event Alert ─────────────────────────────────── -->
+  {% if schedule.adverse_event %}
+  <div class="alert alert-error rounded-xl text-sm py-3 flex gap-3">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+    <div>
+      <p class="font-semibold">Adverse Event Recorded</p>
+      <p class="mt-0.5 opacity-90">{{ schedule.adverse_event_details }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ── Vaccine Info ─────────────────────────────────────── -->
+    <div class="page-card">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Vaccine Info
+      </h2>
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-xs text-gray-400">Vaccine</dt>
+          <dd class="text-sm font-medium text-gray-800">{{ vaccine.name }}</dd>
+        </div>
+        <div>
+          <dt class="text-xs text-gray-400">Recommended Age</dt>
+          <dd class="text-sm text-gray-800">{{ vaccine.age_display }}</dd>
+        </div>
+        {% if vaccine.route %}
+        <div>
+          <dt class="text-xs text-gray-400">Route</dt>
+          <dd class="text-sm text-gray-800">{{ vaccine.route }}</dd>
+        </div>
+        {% endif %}
+        {% if vaccine.site %}
+        <div>
+          <dt class="text-xs text-gray-400">Site</dt>
+          <dd class="text-sm text-gray-800">{{ vaccine.site }}</dd>
+        </div>
+        {% endif %}
+        {% if vaccine.dosage %}
+        <div>
+          <dt class="text-xs text-gray-400">Dosage</dt>
+          <dd class="text-sm text-gray-800">{{ vaccine.dosage }}</dd>
+        </div>
+        {% endif %}
+        {% if vaccine.description %}
+        <div>
+          <dt class="text-xs text-gray-400">Description</dt>
+          <dd class="text-sm text-gray-700">{{ vaccine.description }}</dd>
+        </div>
+        {% endif %}
+        <div>
+          <dt class="text-xs text-gray-400">Scheduled Date</dt>
+          <dd class="text-sm font-medium text-gray-800">{{ schedule.scheduled_date|date:"d M Y" }}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- ── Administration Record ────────────────────────────── -->
+    <div class="page-card">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Administration Record
+      </h2>
+      {% if schedule.administered %}
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-xs text-gray-400">Date Given</dt>
+          <dd class="text-sm font-medium text-gray-800">
+            {{ schedule.administration_date|date:"d M Y" }}
+          </dd>
+        </div>
+        {% if schedule.administered_by %}
+        <div>
+          <dt class="text-xs text-gray-400">Administered By</dt>
+          <dd class="text-sm text-gray-800">{{ schedule.administered_by.get_full_name }}</dd>
+        </div>
+        {% endif %}
+        {% if schedule.batch_number %}
+        <div>
+          <dt class="text-xs text-gray-400">Batch Number</dt>
+          <dd class="text-sm font-mono text-gray-800">{{ schedule.batch_number }}</dd>
+        </div>
+        {% endif %}
+        {% if schedule.expiry_date %}
+        <div>
+          <dt class="text-xs text-gray-400">Batch Expiry</dt>
+          <dd class="text-sm text-gray-800">{{ schedule.expiry_date|date:"d M Y" }}</dd>
+        </div>
+        {% endif %}
+        <div>
+          <dt class="text-xs text-gray-400">Adverse Event</dt>
+          <dd>
+            {% if schedule.adverse_event %}
+            <span class="badge badge-sm bg-red-50 text-red-600 border-0">Yes — recorded above</span>
+            {% else %}
+            <span class="badge badge-sm bg-green-50 text-green-700 border-0">None</span>
+            {% endif %}
+          </dd>
+        </div>
+        {% if schedule.notes %}
+        <div>
+          <dt class="text-xs text-gray-400">Notes</dt>
+          <dd class="text-sm text-gray-700">{{ schedule.notes }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+      {% else %}
+      <div class="text-center py-8 text-gray-400">
+        <svg class="w-8 h-8 mx-auto mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        <p class="text-sm">Vaccine not yet administered.</p>
+        <a href="{% url 'immunization:record' schedule.pk %}"
+           class="btn btn-sm mt-4 text-white border-0 rounded-xl"
+           style="background:#0f6b4f">Record Now</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

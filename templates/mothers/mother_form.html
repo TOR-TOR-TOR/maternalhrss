@@ -1,0 +1,151 @@
+{# templates/mothers/mother_form.html #}
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block page_heading %}{{ form_title }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center gap-4">
+    <a href="{% if mother %}{% url 'mothers:detail' mother.pk %}{% else %}{% url 'mothers:list' %}{% endif %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <h1 class="font-display font-bold text-2xl text-gray-900">{{ form_title }}</h1>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- ── Personal Information ─────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Personal Information
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "first_name,last_name,date_of_birth,national_id" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Contact Information ──────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Contact Information
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "phone_number,alternate_phone" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Location ─────────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Location
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "county,sub_county,ward,village" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Next of Kin ──────────────────────────────────────── -->
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">
+        Next of Kin <span class="text-gray-400 font-normal normal-case text-xs">(optional)</span>
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for field in form %}
+          {% if field.name in "next_of_kin_name,next_of_kin_phone,next_of_kin_relationship" %}
+          <div>
+            <label class="label py-0 mb-1">
+              <span class="label-text text-xs font-medium text-gray-600">{{ field.label }}</span>
+            </label>
+            {{ field }}
+            {% if field.errors %}
+            <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Status (edit only) ───────────────────────────────── -->
+    {% if mother %}
+    <div class="page-card mb-4">
+      <h2 class="font-display font-semibold text-sm text-gray-500 uppercase tracking-wider mb-4">Status</h2>
+      {% for field in form %}
+        {% if field.name == "is_active" %}
+        <div class="flex items-center gap-3">
+          {{ field }}
+          <label for="{{ field.id_for_label }}" class="text-sm text-gray-700">{{ field.label }}</label>
+        </div>
+        {% if field.errors %}
+        <p class="text-xs text-red-500 mt-1">{{ field.errors.0 }}</p>
+        {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ── Non-field errors ─────────────────────────────────── -->
+    {% if form.non_field_errors %}
+    <div class="alert alert-error text-sm py-2.5 rounded-xl mb-4">
+      {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <!-- ── Actions ──────────────────────────────────────────── -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="{% if mother %}{% url 'mothers:detail' mother.pk %}{% else %}{% url 'mothers:list' %}{% endif %}"
+         class="btn btn-sm btn-ghost rounded-xl text-gray-500">Cancel</a>
+      <button type="submit"
+              class="btn btn-sm text-white border-0 rounded-xl px-6"
+              style="background:#0f6b4f">
+        {% if mother %}Save Changes{% else %}Register Mother{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

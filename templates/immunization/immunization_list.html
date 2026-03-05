@@ -1,0 +1,119 @@
+{# templates/immunization/immunization_list.html #}
+{% extends "base.html" %}
+{% block title %}Immunization{% endblock %}
+{% block page_heading %}Immunization{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">Immunization</h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ schedules|length }} record{{ schedules|length|pluralize }} shown</p>
+    </div>
+  </div>
+
+  <!-- ── Filter Tabs ─────────────────────────────────────────── -->
+  <div class="flex gap-2 flex-wrap">
+    <a href="?"
+       class="btn btn-sm rounded-xl font-medium text-sm
+         {% if not active_filter %}text-white border-0{% else %}btn-ghost border border-gray-200 text-gray-500{% endif %}"
+       {% if not active_filter %}style="background:#0f6b4f"{% endif %}>
+      All
+    </a>
+    {% for slug, label, color in filters %}
+    <a href="?status={{ slug }}"
+       class="btn btn-sm rounded-xl border font-medium text-sm
+         {% if active_filter == slug %}text-white border-0{% else %}btn-ghost border-gray-200 text-gray-500{% endif %}"
+       {% if active_filter == slug %}style="background:#0f6b4f"{% endif %}>
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- ── Table ───────────────────────────────────────────────── -->
+  <div class="page-card p-0 overflow-hidden">
+    {% if schedules %}
+    <table class="table table-sm w-full">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Baby</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Vaccine</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Due Date</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Status</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Age at Dose</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Mother</th>
+          <th class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        {% for schedule in schedules %}
+        <tr class="hover:bg-gray-50 transition-colors">
+          <td class="px-6 py-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                   style="background:{% if schedule.baby.gender == 'M' %}#3b82f6{% else %}#ec4899{% endif %}">
+                {{ schedule.baby.display_name|slice:":1" }}
+              </div>
+              <div>
+                <p class="font-medium text-sm text-gray-800">{{ schedule.baby.display_name }}</p>
+                <p class="text-xs text-gray-400">{{ schedule.baby.get_age_display }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="py-3">
+            <p class="text-sm font-medium text-gray-800">{{ schedule.vaccine.name }}</p>
+            <p class="text-xs text-gray-400">{{ schedule.vaccine.age_display }}</p>
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ schedule.scheduled_date|date:"d M Y" }}</td>
+          <td class="py-3">
+            <span class="badge badge-sm border-0 font-medium
+              {% if schedule.administered %}bg-green-50 text-green-700
+              {% elif schedule.missed %}bg-red-50 text-red-600
+              {% elif schedule.is_overdue %}bg-amber-50 text-amber-600
+              {% else %}bg-gray-100 text-gray-500{% endif %}">
+              {{ schedule.status }}
+            </span>
+            {% if schedule.adverse_event %}
+            <span class="badge badge-sm bg-red-50 text-red-600 border-0 ml-1">⚠ Adverse Event</span>
+            {% endif %}
+          </td>
+          <td class="py-3 text-sm text-gray-600">
+            {% if schedule.baby_age_at_schedule is not None %}
+              {{ schedule.baby_age_at_schedule }}wks
+            {% else %}—{% endif %}
+          </td>
+          <td class="py-3 text-sm text-gray-600">{{ schedule.baby.mother.full_name }}</td>
+          <td class="py-3 px-6">
+            {% if schedule.administered %}
+            <a href="{% url 'immunization:detail' schedule.pk %}"
+               class="btn btn-xs btn-ghost rounded-lg text-gray-400">View</a>
+            {% else %}
+            <a href="{% url 'immunization:record' schedule.pk %}"
+               class="btn btn-xs rounded-lg text-white border-0"
+               style="background:#0f6b4f">Record</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+      <p class="text-sm">No immunization records found
+        {% if active_filter %}for filter <strong>"{{ active_filter }}"</strong>{% endif %}.
+      </p>
+      {% if active_filter %}
+      <a href="?" class="text-sm mt-2 inline-block" style="color:#0f6b4f">Clear filter</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
