@@ -1,18 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Users{% endblock %}
-{% block page_heading %}
-  {% if user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}
-{% endblock %}
+{% block title %}{% if request.user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}{% endblock %}
+{% block page_heading %}{% if request.user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}{% endblock %}
 
+{% block dashboard_content %}
+<div class="space-y-6">
 
-{% block content %}
-<div class="page-card">
-
-  <!-- Header row -->
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="font-display font-semibold text-xl text-gray-800">
-      {% if request.user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}
-    </h2>
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="font-display font-bold text-2xl text-gray-900">
+        {% if request.user.role == 'MOH' %}All Users{% else %}Facility Staff{% endif %}
+      </h1>
+      <p class="text-gray-400 text-sm mt-0.5">{{ users|length }} member{{ users|length|pluralize }}</p>
+    </div>
     {% if request.user.role == 'MOH' %}
     <a href="{% url 'users:register' %}"
        class="btn btn-sm text-white border-0 rounded-xl gap-2"
@@ -22,49 +21,60 @@
       </svg>
       Register User
     </a>
+    {% elif request.user.role == 'MANAGER' %}
+    <a href="{% url 'users:register' %}"
+       class="btn btn-sm text-white border-0 rounded-xl gap-2"
+       style="background:#0f6b4f">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Staff
+    </a>
     {% endif %}
   </div>
 
-  {% if users %}
-  <div class="overflow-x-auto">
+  <div class="page-card p-0 overflow-hidden">
+    {% if users %}
     <table class="table table-sm w-full">
       <thead>
-        <tr class="text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-          <th class="font-semibold py-3">Name</th>
-          <th class="font-semibold py-3">Role</th>
-          <th class="font-semibold py-3">Facility</th>
-          <th class="font-semibold py-3">Phone</th>
-          <th class="font-semibold py-3">Status</th>
-          <th class="font-semibold py-3"></th>
+        <tr class="bg-gray-50 border-b border-gray-100">
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3 px-6">Name</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Role</th>
+          {% if request.user.role == 'MOH' %}
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Facility</th>
+          {% endif %}
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Phone</th>
+          <th class="font-semibold text-xs text-gray-500 uppercase tracking-wider py-3">Status</th>
+          <th class="py-3 px-6"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-50">
         {% for u in users %}
         <tr class="hover:bg-gray-50 transition-colors">
-          <td class="py-3">
+          <td class="py-3 px-6">
             <div class="flex items-center gap-3">
-              <div class="avatar placeholder">
-                <div class="rounded-full w-8 text-white text-xs font-bold"
-                     style="background:#0f6b4f">
-                  <span>{{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}</span>
-                </div>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                   style="background:#0f6b4f">
+                {{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}
               </div>
               <div>
                 <p class="font-medium text-gray-800 text-sm">{{ u.get_full_name }}</p>
-                <p class="text-gray-400 text-xs">{{ u.username }}</p>
+                <p class="text-gray-400 text-xs">@{{ u.username }}</p>
               </div>
             </div>
           </td>
           <td class="py-3">
-            <span class="badge badge-sm
+            <span class="badge badge-sm border-0
               {% if u.role == 'MOH' %}bg-purple-100 text-purple-700
               {% elif u.role == 'MANAGER' %}bg-blue-100 text-blue-700
               {% else %}bg-green-100 text-green-700{% endif %}">
               {{ u.get_role_display }}
             </span>
           </td>
+          {% if request.user.role == 'MOH' %}
           <td class="py-3 text-sm text-gray-600">{{ u.get_facility_name }}</td>
-          <td class="py-3 text-sm text-gray-600">{{ u.phone_number }}</td>
+          {% endif %}
+          <td class="py-3 text-sm text-gray-600">{{ u.phone_number|default:"—" }}</td>
           <td class="py-3">
             {% if u.is_active_user %}
               <span class="badge badge-xs bg-green-100 text-green-700">Active</span>
@@ -72,7 +82,7 @@
               <span class="badge badge-xs bg-red-100 text-red-600">Inactive</span>
             {% endif %}
           </td>
-          <td class="py-3 text-right">
+          <td class="py-3 px-6 text-right">
             <a href="{% url 'users:user_detail' u.pk %}"
                class="btn btn-xs btn-ghost rounded-lg text-gray-500">View</a>
           </td>
@@ -80,15 +90,21 @@
         {% endfor %}
       </tbody>
     </table>
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+      <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <p class="text-sm">No staff found.</p>
+      {% if request.user.role == 'MANAGER' %}
+      <a href="{% url 'users:register' %}" class="text-sm mt-2 inline-block font-medium" style="color:#0f6b4f">
+        Add your first staff member →
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
-  {% else %}
-  <div class="text-center py-16 text-gray-400">
-    <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-    </svg>
-    <p class="text-sm">No users found.</p>
-  </div>
-  {% endif %}
+
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

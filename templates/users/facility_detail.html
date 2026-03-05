@@ -133,7 +133,7 @@
   <div class="page-card">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-display font-semibold text-base text-gray-700">Staff at this Facility</h3>
-      {% if request.user.role == 'MOH' %}
+      {% if request.user.role == 'MOH' or request.user.role == 'MANAGER' %}
       <a href="{% url 'users:register' %}" class="btn btn-xs btn-ghost rounded-lg text-[#0f6b4f]">+ Add Staff</a>
       {% endif %}
     </div>
@@ -166,12 +166,12 @@
   {% endif %}
 
   <!-- Back link — role aware -->
-  <a href="{% if user.role == 'NURSE' %}{% url 'users:nurse_dashboard' %}{% else %}{% url 'users:facility_list' %}{% endif %}"
+  <a href="{% if user.role == "NURSE" %}{% url "users:nurse_dashboard" %}{% elif user.role == "MANAGER" %}{% url "users:manager_dashboard" %}{% else %}{% url "users:facility_list" %}{% endif %}"
      class="text-sm text-gray-400 hover:text-[#0f6b4f] flex items-center gap-1">
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
     </svg>
-    {% if user.role == 'NURSE' %}Back to Dashboard{% else %}Back to Facilities{% endif %}
+    {% if user.role == "NURSE" %}Back to Dashboard{% elif user.role == "MANAGER" %}Back to Dashboard{% else %}Back to Facilities{% endif %}
   </a>
 
 </div>

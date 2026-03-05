@@ -2,27 +2,25 @@
 {% block title %}{{ form_title }}{% endblock %}
 {% block page_heading %}{{ form_title }}{% endblock %}
 
-{% block content %}
+{% block dashboard_content %}
 <div class="max-w-2xl mx-auto">
-  <div class="page-card">
-    <h2 class="font-display font-semibold text-xl text-gray-800 mb-6">{{ form_title }}</h2>
+  <div class="flex items-center gap-4 mb-6">
+    <a href="{% if facility %}{% url 'users:facility_detail' facility.pk %}{% else %}{% url 'users:facility_list' %}{% endif %}"
+       class="btn btn-sm btn-ghost rounded-xl text-gray-400">← Back</a>
+    <h1 class="font-display font-bold text-2xl text-gray-900">{{ form_title }}</h1>
+  </div>
 
+  <div class="page-card">
     <form method="post" novalidate>
       {% csrf_token %}
 
-      <!-- Group: Basic Info -->
       <div class="mb-6">
-        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-          Basic Information
-        </h3>
+        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">Basic Information</h3>
         {% for field in form.visible_fields %}
           {% if field.name in "name,facility_level,mfl_code" %}
           <div class="form-control mb-4">
             <label class="label pb-1.5" for="{{ field.id_for_label }}">
-              <span class="label-text text-gray-700 font-medium">
-                {{ field.label }}
-                {% if field.field.required %}<span class="text-red-400 ml-0.5">*</span>{% endif %}
-              </span>
+              <span class="label-text text-gray-700 font-medium">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
             </label>
             {{ field }}
             {% if field.help_text %}<p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
@@ -32,19 +30,13 @@
         {% endfor %}
       </div>
 
-      <!-- Group: Location -->
       <div class="mb-6">
-        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-          Location
-        </h3>
+        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">Location</h3>
         {% for field in form.visible_fields %}
           {% if field.name in "county,sub_county,ward,village" %}
           <div class="form-control mb-4">
             <label class="label pb-1.5" for="{{ field.id_for_label }}">
-              <span class="label-text text-gray-700 font-medium">
-                {{ field.label }}
-                {% if field.field.required %}<span class="text-red-400 ml-0.5">*</span>{% endif %}
-              </span>
+              <span class="label-text text-gray-700 font-medium">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
             </label>
             {{ field }}
             {% for error in field.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
@@ -53,19 +45,13 @@
         {% endfor %}
       </div>
 
-      <!-- Group: Contact -->
       <div class="mb-6">
-        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-          Contact
-        </h3>
+        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">Contact</h3>
         {% for field in form.visible_fields %}
           {% if field.name in "phone_number,alternate_phone,email" %}
           <div class="form-control mb-4">
             <label class="label pb-1.5" for="{{ field.id_for_label }}">
-              <span class="label-text text-gray-700 font-medium">
-                {{ field.label }}
-                {% if field.field.required %}<span class="text-red-400 ml-0.5">*</span>{% endif %}
-              </span>
+              <span class="label-text text-gray-700 font-medium">{{ field.label }}{% if field.field.required %} *{% endif %}</span>
             </label>
             {{ field }}
             {% if field.help_text %}<p class="text-gray-400 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
@@ -75,11 +61,8 @@
         {% endfor %}
       </div>
 
-      <!-- Group: Operations (checkboxes) -->
       <div class="mb-6">
-        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">
-          Operations
-        </h3>
+        <h3 class="font-semibold text-sm text-gray-500 uppercase tracking-wider mb-3 pb-2 border-b border-gray-100">Operations</h3>
         {% for field in form.visible_fields %}
           {% if field.name in "is_active,is_24_hours,has_maternity_services" %}
           <div class="form-control mb-3">
@@ -87,7 +70,6 @@
               {{ field }}
               <span class="label-text text-gray-700">{{ field.label }}</span>
             </label>
-            {% if field.help_text %}<p class="text-gray-400 text-xs ml-10">{{ field.help_text }}</p>{% endif %}
             {% for error in field.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
           </div>
           {% endif %}
@@ -101,9 +83,7 @@
       {% endif %}
 
       <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
-        <button type="submit"
-          class="btn text-white border-0 shadow-sm px-6 rounded-xl"
-          style="background:#0f6b4f">
+        <button type="submit" class="btn text-white border-0 shadow-sm px-6 rounded-xl" style="background:#0f6b4f">
           {% if facility %}Update Facility{% else %}Create Facility{% endif %}
         </button>
         {% if facility %}
@@ -115,4 +95,4 @@
     </form>
   </div>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}

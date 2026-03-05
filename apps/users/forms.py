@@ -10,17 +10,15 @@ from .models import CustomUser, Facility
 # ─────────────────────────────────────────────
 
 def active_facilities_queryset():
-    """Single source of truth for facility dropdown filtering."""
     return Facility.objects.filter(is_active=True).order_by('county', 'name')
 
 
-TAILWIND_INPUT   = 'input input-bordered w-full'
-TAILWIND_SELECT  = 'select select-bordered w-full'
+TAILWIND_INPUT    = 'input input-bordered w-full'
+TAILWIND_SELECT   = 'select select-bordered w-full'
 TAILWIND_TEXTAREA = 'textarea textarea-bordered w-full'
 
 
 def apply_tailwind(form):
-    """Apply DaisyUI classes to all fields in a form."""
     for field in form.fields.values():
         widget = field.widget
         if isinstance(widget, (forms.Select, forms.RadioSelect)):
@@ -38,26 +36,32 @@ def apply_tailwind(form):
 class FacilityForm(forms.ModelForm):
     """
     Create / update a Facility.
-    Accessible to MANAGER (own facility) and MOH (all facilities).
+    MOH: full access.
+    MANAGER: cannot change facility_level or is_active.
+    Pass is_manager=True to restrict fields.
     """
 
     class Meta:
         model = Facility
         exclude = ['created_at', 'updated_at']
         widgets = {
-            'name':             forms.TextInput(attrs={'placeholder': 'e.g. Nairobi West Hospital'}),
-            'mfl_code':         forms.TextInput(attrs={'placeholder': 'e.g. 13046'}),
-            'county':           forms.TextInput(attrs={'placeholder': 'e.g. Nairobi'}),
-            'sub_county':       forms.TextInput(attrs={'placeholder': 'e.g. Langata'}),
-            'ward':             forms.TextInput(attrs={'placeholder': 'e.g. Karen'}),
-            'village':          forms.TextInput(attrs={'placeholder': 'Optional'}),
-            'phone_number':     forms.TextInput(attrs={'placeholder': '+254712345678'}),
-            'alternate_phone':  forms.TextInput(attrs={'placeholder': 'Optional'}),
-            'email':            forms.EmailInput(attrs={'placeholder': 'facility@example.com'}),
+            'name':            forms.TextInput(attrs={'placeholder': 'e.g. Nairobi West Hospital'}),
+            'mfl_code':        forms.TextInput(attrs={'placeholder': 'e.g. 13046'}),
+            'county':          forms.TextInput(attrs={'placeholder': 'e.g. Nairobi'}),
+            'sub_county':      forms.TextInput(attrs={'placeholder': 'e.g. Langata'}),
+            'ward':            forms.TextInput(attrs={'placeholder': 'e.g. Karen'}),
+            'village':         forms.TextInput(attrs={'placeholder': 'Optional'}),
+            'phone_number':    forms.TextInput(attrs={'placeholder': '+254712345678'}),
+            'alternate_phone': forms.TextInput(attrs={'placeholder': 'Optional'}),
+            'email':           forms.EmailInput(attrs={'placeholder': 'facility@example.com'}),
         }
 
     def __init__(self, *args, **kwargs):
+        self.is_manager = kwargs.pop('is_manager', False)
         super().__init__(*args, **kwargs)
+        if self.is_manager:
+            self.fields.pop('facility_level', None)
+            self.fields.pop('is_active', None)
         apply_tailwind(self)
 
 
@@ -68,8 +72,9 @@ class FacilityForm(forms.ModelForm):
 class CustomUserCreationForm(UserCreationForm):
     """
     Register a new user.
-    MOH-only view. Facility field limited to active facilities.
-    MOH role may leave facility blank.
+    MOH: full access — any role, any facility.
+    MANAGER: restricted to NURSE role only, facility auto-assigned in view.
+    Pass is_manager=True to restrict choices.
     """
 
     class Meta(UserCreationForm.Meta):
@@ -87,30 +92,33 @@ class CustomUserCreationForm(UserCreationForm):
         ]
 
     def __init__(self, *args, **kwargs):
+        self.is_manager = kwargs.pop('is_manager', False)
         super().__init__(*args, **kwargs)
         self.fields['facility'].queryset = active_facilities_queryset()
         self.fields['facility'].required = False
         self.fields['first_name'].required = True
-        self.fields['last_name'].required = True
+        self.fields['last_name'].required  = True
+        if self.is_manager:
+            # Lock to Nurse only and hide facility (auto-assigned in view)
+            self.fields['role'].choices = [('NURSE', 'Nurse / CHV')]
+            self.fields['role'].initial  = 'NURSE'
+            self.fields.pop('facility', None)
         apply_tailwind(self)
 
     def clean(self):
         cleaned_data = super().clean()
-        role = cleaned_data.get('role')
+        role     = cleaned_data.get('role')
         facility = cleaned_data.get('facility')
-
-        if role in ('NURSE', 'MANAGER') and not facility:
+        if not self.is_manager and role in ('NURSE', 'MANAGER') and not facility:
             self.add_error('facility', 'Nurses and Managers must be assigned to a facility.')
-
         return cleaned_data
 
 
 class CustomUserUpdateForm(UserChangeForm):
     """
-    Update an existing user's profile (no password fields).
-    Used for both self-profile edits and admin edits.
+    MOH-only update form — full access to all fields.
     """
-    password = None  # hide the raw password hash field UserChangeForm exposes
+    password = None
 
     class Meta(UserChangeForm.Meta):
         model = CustomUser
@@ -130,34 +138,56 @@ class CustomUserUpdateForm(UserChangeForm):
         self.fields['facility'].queryset = active_facilities_queryset()
         self.fields['facility'].required = False
         self.fields['first_name'].required = True
-        self.fields['last_name'].required = True
+        self.fields['last_name'].required  = True
         apply_tailwind(self)
 
     def clean(self):
         cleaned_data = super().clean()
-        role = cleaned_data.get('role')
+        role     = cleaned_data.get('role')
         facility = cleaned_data.get('facility')
-
         if role in ('NURSE', 'MANAGER') and not facility:
             self.add_error('facility', 'Nurses and Managers must be assigned to a facility.')
-
         return cleaned_data
+
+
+class ManagerUserUpdateForm(forms.ModelForm):
+    """
+    MANAGER editing a staff member.
+    Can update personal details and active status only.
+    Role and facility are MOH-only — not included.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'is_active_user',
+        ]
+        widgets = {
+            'first_name':   forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':    forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'email':        forms.EmailInput(attrs={'placeholder': 'email@example.com'}),
+            'phone_number': forms.TextInput(attrs={'placeholder': '+254712345678'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required  = True
+        apply_tailwind(self)
 
 
 class NurseProfileForm(forms.ModelForm):
     """
     Self-edit form for NURSE role.
-    Only personal fields — role, facility, is_active_user are admin-only.
     """
 
     class Meta:
         model = CustomUser
-        fields = [
-            'first_name',
-            'last_name',
-            'email',
-            'phone_number',
-        ]
+        fields = ['first_name', 'last_name', 'email', 'phone_number']
         widgets = {
             'first_name':   forms.TextInput(attrs={'placeholder': 'First name'}),
             'last_name':    forms.TextInput(attrs={'placeholder': 'Last name'}),
@@ -171,25 +201,15 @@ class NurseProfileForm(forms.ModelForm):
         self.fields['last_name'].required  = True
         apply_tailwind(self)
 
-
-# ── ADD to apps/users/forms.py ─────────────────────────────────
-# Place after NurseProfileForm, before LoginForm
 
 class ManagerProfileForm(forms.ModelForm):
     """
     Self-edit form for MANAGER role.
-    Same personal fields as NurseProfileForm — role, facility,
-    and is_active_user are admin (MOH) only.
     """
 
     class Meta:
         model = CustomUser
-        fields = [
-            'first_name',
-            'last_name',
-            'email',
-            'phone_number',
-        ]
+        fields = ['first_name', 'last_name', 'email', 'phone_number']
         widgets = {
             'first_name':   forms.TextInput(attrs={'placeholder': 'First name'}),
             'last_name':    forms.TextInput(attrs={'placeholder': 'Last name'}),
@@ -203,11 +223,8 @@ class ManagerProfileForm(forms.ModelForm):
         self.fields['last_name'].required  = True
         apply_tailwind(self)
 
+
 class LoginForm(forms.Form):
-    """
-    Thin wrapper around Django's authenticate().
-    Keeps auth logic in the view; form only handles input + styling.
-    """
     username = forms.CharField(
         max_length=150,
         widget=forms.TextInput(attrs={'placeholder': 'Username', 'autofocus': True})
